@@ -12,11 +12,13 @@ class CustomWebView extends StatefulWidget {
 
 class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserver {
   late WebViewController _controller;
+  String _lastKnownContentStatus = ''; // Variable to store the last known content status
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _fetchAndUpdateContentStatus(); // Fetch initial content status
   }
 
   @override
@@ -25,11 +27,21 @@ class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserve
     super.dispose();
   }
 
+  Future<void> _fetchAndUpdateContentStatus() async {
+    // TODO: Implement the logic to fetch the current content status from your server
+    // For example, it could be a timestamp or a hash value
+    // Update _lastKnownContentStatus with the fetched value
+  }
+
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      // When app resumes, reload the webview
-      _controller.reload();
+      String currentStatus = ''; // Fetch the current status from the server
+      // TODO: Replace with actual fetch logic
+      if (currentStatus != _lastKnownContentStatus) {
+        _controller.reload(); // Reload only if content has changed
+        _lastKnownContentStatus = currentStatus; // Update the last known status
+      }
     }
   }
 
