@@ -30,7 +30,7 @@ class SplashScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
-        child: Center(child: Image.asset('assets/kpft.png', width: 150)),
+        child: Center(child: Image.asset('assets/kpft.png', width: 200)),
       ),
     );
   }

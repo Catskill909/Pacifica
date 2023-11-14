@@ -11,14 +11,19 @@ class CustomWebView extends StatefulWidget {
 }
 
 class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserver {
-  late WebViewController _controller;
-  String _lastKnownContentStatus = ''; // Variable to store the last known content status
+  bool _isLoading = true;
+  double _opacity = 0.0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _fetchAndUpdateContentStatus(); // Fetch initial content status
+    // Delay the WebView rendering
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() => _opacity = 1.0);
+      }
+    });
   }
 
   @override
@@ -27,48 +32,38 @@ class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserve
     super.dispose();
   }
 
-  Future<void> _fetchAndUpdateContentStatus() async {
-    // TODO: Implement the logic to fetch the current content status from your server
-    // For example, it could be a timestamp or a hash value
-    // Update _lastKnownContentStatus with the fetched value
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed) {
-      String currentStatus = ''; // Fetch the current status from the server
-      // TODO: Replace with actual fetch logic
-      if (currentStatus != _lastKnownContentStatus) {
-        _controller.reload(); // Reload only if content has changed
-        _lastKnownContentStatus = currentStatus; // Update the last known status
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFB81717), // Background color
-      child: WebView(
-        initialUrl: widget.url,
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (WebViewController webViewController) {
-          _controller = webViewController;
-        },
-        onPageStarted: (String url) {
-          // Perform actions when page loading starts
-        },
-        onPageFinished: (String url) {
-          // Perform actions when page loading finishes
-        },
-        onWebResourceError: (WebResourceError error) {
-          // Improved error handling
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error loading page: ${error.description}')),
-          );
-        },
-        gestureNavigationEnabled: false,
-      ),
+    return Stack(
+      children: [
+        AnimatedOpacity(
+          opacity: _opacity,
+          duration: const Duration(milliseconds: 300),
+          child: WebView(
+            initialUrl: widget.url,
+            javascriptMode: JavascriptMode.unrestricted,
+            onPageStarted: (String url) {
+              setState(() => _isLoading = true);
+            },
+            onPageFinished: (String url) {
+              setState(() => _isLoading = false);
+            },
+            onWebResourceError: (WebResourceError error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error loading page: ${error.description}')),
+              );
+            },
+            gestureNavigationEnabled: false,
+          ),
+        ),
+        _isLoading
+            ? Container(
+          alignment: Alignment.center,
+          color: Colors.transparent, // Or any other color that suits your app
+          child: const CircularProgressIndicator(),
+        )
+            : Container(),
+      ],
     );
   }
 }
