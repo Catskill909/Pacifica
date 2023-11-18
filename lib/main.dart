@@ -73,7 +73,7 @@ class AudioPlayerHandler extends BaseAudioHandler {
       title: "KPFT 90.1 FM",
       artist: "Houston's Community Station",
       duration: const Duration(milliseconds: 5739820),
-      artUri: Uri.parse("https://kpft.org/wp-content/uploads/2022/01/kpft.png"),
+      artUri: Uri.parse("https://starkey.digital/app/kpft2.png"),
     );
     await setMediaItem(_mediaItem);
   }
