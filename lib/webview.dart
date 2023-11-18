@@ -11,19 +11,14 @@ class CustomWebView extends StatefulWidget {
 }
 
 class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserver {
+  late WebViewController _controller;
   bool _isLoading = true;
-  double _opacity = 0.0;
+  bool _errorOccurred = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Delay the WebView rendering
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        setState(() => _opacity = 1.0);
-      }
-    });
   }
 
   @override
@@ -33,36 +28,45 @@ class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserve
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed && _errorOccurred) {
+      // Reload the WebView only if an error occurred previously
+      _controller.reload();
+      _errorOccurred = false; // Reset the error flag
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        AnimatedOpacity(
-          opacity: _opacity,
-          duration: const Duration(milliseconds: 300),
-          child: WebView(
-            initialUrl: widget.url,
-            javascriptMode: JavascriptMode.unrestricted,
-            onPageStarted: (String url) {
-              setState(() => _isLoading = true);
-            },
-            onPageFinished: (String url) {
-              setState(() => _isLoading = false);
-            },
-            onWebResourceError: (WebResourceError error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error loading page: ${error.description}')),
-              );
-            },
-            gestureNavigationEnabled: false,
-          ),
+        WebView(
+          initialUrl: widget.url,
+          javascriptMode: JavascriptMode.unrestricted,
+          onWebViewCreated: (WebViewController webViewController) {
+            _controller = webViewController;
+          },
+          onPageStarted: (String url) {
+            setState(() => _isLoading = true);
+          },
+          onPageFinished: (String url) {
+            setState(() => _isLoading = false);
+          },
+          onWebResourceError: (WebResourceError error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error loading page: ${error.description}')),
+            );
+            _errorOccurred = true; // Set the error flag
+          },
+          gestureNavigationEnabled: true,
         ),
-        _isLoading
-            ? Container(
-          alignment: Alignment.center,
-          color: Colors.transparent, // Or any other color that suits your app
-          child: const CircularProgressIndicator(),
-        )
-            : Container(),
+        if (_isLoading)
+          Container(
+            alignment: Alignment.center,
+            color: Colors.white,
+            child: const CircularProgressIndicator(),
+          ),
       ],
     );
   }
