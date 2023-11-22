@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'webview.dart';
+import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -132,11 +133,35 @@ class MyHomePage extends StatelessWidget {
 
   const MyHomePage({Key? key, required this.handler}) : super(key: key);
 
+  void _showWordpressSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        final double topPadding = MediaQuery.of(context).padding.top; // Get top safe area height
+        final double screenHeight = MediaQuery.of(context).size.height;
+
+        // Adjust this value to control the additional offset from the top
+        const double additionalTopOffset = 30; // You can adjust this value
+
+        return SizedBox(
+          height: screenHeight - topPadding - additionalTopOffset, // Subtract additional offset
+          child: const WordPressIntegrationScreen(), // Your widget from wordpres.dart
+        );
+      },
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return Scaffold(
-      appBar: CustomNavBar(mediaQuery: mediaQuery, onInfoPressed: () {}),
+      appBar: CustomNavBar(
+        mediaQuery: mediaQuery,
+        onInfoPressed: () => _showWordpressSheet(context),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -196,9 +221,18 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
         padding: const EdgeInsets.only(top: 0.0, bottom: 0.0),
         child: Row(
           children: [
-            IconButton(icon: const Icon(Icons.info, color: Colors.white), onPressed: onInfoPressed, iconSize: 36),
+            IconButton(
+              icon: const Icon(Icons.feed, color: Colors.white),
+              onPressed: onInfoPressed,
+              iconSize: 26,
+            ),
             const Expanded(child: SizedBox()),
-            CachedNetworkImage(imageUrl: "https://kpft.org/wp-content/uploads/2022/01/kpft.png", width: 70, height: 70, fit: BoxFit.contain),
+            CachedNetworkImage(
+                imageUrl: "https://kpft.org/wp-content/uploads/2022/01/kpft.png",
+                width: 70,
+                height: 70,
+                fit: BoxFit.contain
+            ),
             const Expanded(child: SizedBox()),
             const SizedBox(width: 48),
           ],
