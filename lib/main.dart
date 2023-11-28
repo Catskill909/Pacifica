@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'webview.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
+import 'sheet.dart'; // Import the RadioSheet widget
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,7 @@ void main() async {
 }
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +114,7 @@ class AudioPlayerHandler extends BaseAudioHandler {
 class MyApp extends StatelessWidget {
   final AudioPlayerHandler handler;
 
-  const MyApp({Key? key, required this.handler}) : super(key: key);
+  const MyApp({super.key, required this.handler});
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +132,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatelessWidget {
   final AudioPlayerHandler handler;
 
-  const MyHomePage({Key? key, required this.handler}) : super(key: key);
+  const MyHomePage({super.key, required this.handler});
 
   void _showWordpressSheet(BuildContext context) {
     showModalBottomSheet(
@@ -184,7 +185,7 @@ class MyHomePage extends StatelessWidget {
 class AudioControls extends StatelessWidget {
   final AudioPlayerHandler handler;
 
-  const AudioControls({Key? key, required this.handler}) : super(key: key);
+  const AudioControls({super.key, required this.handler});
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +211,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
   final Function() onInfoPressed;
   final MediaQueryData mediaQuery;
 
-  const CustomNavBar({Key? key, required this.onInfoPressed, required this.mediaQuery}) : super(key: key);
+  const CustomNavBar({super.key, required this.onInfoPressed, required this.mediaQuery});
 
   @override
   Widget build(BuildContext context) {
@@ -221,25 +222,62 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
         padding: const EdgeInsets.only(top: 0.0, bottom: 0.0),
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.feed, color: Colors.white),
-              onPressed: onInfoPressed,
-              iconSize: 26,
-            ),
+            _buildInfoIconButton(),
             const Expanded(child: SizedBox()),
-            CachedNetworkImage(
-                imageUrl: "https://kpft.org/wp-content/uploads/2022/01/kpft.png",
-                width: 70,
-                height: 70,
-                fit: BoxFit.contain
-            ),
+            _buildLogoImage(),
             const Expanded(child: SizedBox()),
-            const SizedBox(width: 48),
+            _buildBottomSheetIconButton(context),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildInfoIconButton() {
+    return IconButton(
+      icon: const Icon(Icons.feed, color: Colors.white),
+      onPressed: onInfoPressed,
+      iconSize: 26,
+    );
+  }
+
+  Widget _buildLogoImage() {
+    return CachedNetworkImage(
+      imageUrl: "https://kpft.org/wp-content/uploads/2022/01/kpft.png",
+      width: 70,
+      height: 70,
+      fit: BoxFit.contain,
+    );
+  }
+
+  Widget _buildBottomSheetIconButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.info, color: Colors.white), // Replace 'Icons.add' with your desired icon
+      onPressed: () {
+        _showBottomSheet(context);
+      },
+      iconSize: 26,
+    );
+  }
+
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        final double topPadding = MediaQuery.of(context).padding.top; // Get top safe area height
+
+        // Adjust this value to control the additional offset from the top
+        const double additionalTopOffset = 30; // Set this to 0 to start from the top
+
+        return SizedBox(
+          height: MediaQuery.of(context).size.height - topPadding - additionalTopOffset,
+          child: const RadioSheet(), // Display the RadioSheet widget in the bottom sheet
+        );
+      },
+    );
+  }
+
 
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight + mediaQuery.padding.top);

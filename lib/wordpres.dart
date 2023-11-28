@@ -10,7 +10,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
 }
 
 class WordPressIntegrationScreen extends StatefulWidget {
-  const WordPressIntegrationScreen({Key? key}) : super(key: key);
+  const WordPressIntegrationScreen({super.key});
 
   @override
   WordPressIntegrationScreenState createState() => WordPressIntegrationScreenState();
@@ -107,7 +107,7 @@ class WordPressIntegrationScreenState extends State<WordPressIntegrationScreen> 
 class PostDetailScreen extends StatelessWidget {
   final Post post;
 
-  const PostDetailScreen({Key? key, required this.post}) : super(key: key);
+  const PostDetailScreen({super.key, required this.post});
 
   @override
   Widget build(BuildContext context) {

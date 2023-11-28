@@ -43,7 +43,7 @@ class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserve
       children: [
         WebView(
           initialUrl: widget.url,
-          javascriptMode: JavascriptMode.unrestricted,
+          javascriptMode: JavascriptMode.unrestricted, // Import this enum from webview_flutter
           onWebViewCreated: (WebViewController webViewController) {
             _controller = webViewController;
           },
