@@ -78,7 +78,7 @@ flutter:
     - family: Oswald
       fonts:
         - asset: assets/Oswald-SemiBold.ttf
-          weight: 600
+        - asset: assets/Oswald-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

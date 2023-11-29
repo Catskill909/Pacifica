@@ -53,7 +53,11 @@ class WordPressIntegrationScreenState extends State<WordPressIntegrationScreen> 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('KPFT News', style: TextStyle(color: Colors.white)),
+        title: const Text('KPFT News', style: TextStyle(
+            color: Colors.white,
+          fontFamily: 'Oswald',
+          fontWeight: FontWeight.w600,
+        )),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
@@ -82,7 +86,12 @@ class WordPressIntegrationScreenState extends State<WordPressIntegrationScreen> 
                   tileColor: Colors.grey[850], // Dark tile background color
                   title: Text(
                     snapshot.data![index].title,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(
+                      fontFamily: 'Oswald', // The font family name you used in pubspec.yaml
+                      fontWeight: FontWeight.w400,
+                      fontSize: 16.0, // Adjust the font size as needed
+                      color: Colors.white,
+                    ),
                   ),
                   onTap: () {
                     Navigator.push(
@@ -113,9 +122,19 @@ class PostDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('KPFT News'),
+        title: const Text(
+          'KPFT News',
+          style: TextStyle(
+            color: Colors.white, // Set the text color to white for dark mode
+            fontFamily: 'Oswald', // Use the "Oswald" font family
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Colors.black, // Set the background color to black for dark mode
+        iconTheme: const IconThemeData(color: Colors.white), // Set icon color to white
         automaticallyImplyLeading: true, // Allow the back arrow
       ),
+
       body: Column(
         children: [
           Container(
@@ -124,34 +143,41 @@ class PostDetailScreen extends StatelessWidget {
               post.title,
               style: const TextStyle(
                 fontSize: 20.0,
-                fontWeight: FontWeight.bold,
+                fontFamily: 'Oswald', // The font family name you used in pubspec.yaml
+                fontWeight: FontWeight.w600
               ),
             ),
           ),
           Expanded(
-            child: WebView(
-              initialUrl: Uri.dataFromString(
-                '<html>'
-                    '<head>'
-                    '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
-                    '<style>'
-                    'body { font-size: 16px; }'
-                    'img, video, iframe { max-width: 100%; height: auto; }'
-                    '</style>'
-                    '</head>'
-                    '<body>${post.content}</body>'
-                    '</html>',
-                mimeType: 'text/html',
-                encoding: Encoding.getByName('utf-8'),
-              ).toString(),
-              javascriptMode: JavascriptMode.unrestricted,
-              navigationDelegate: (NavigationRequest request) {
-                if (request.url.startsWith('http')) {
-                  _launchURL(Uri.parse(request.url));
-                  return NavigationDecision.prevent;
-                }
-                return NavigationDecision.navigate;
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (scrollNotification) {
+                // Consume the scroll event to prevent it from bubbling up and affecting the parent ListView.
+                return true;
               },
+              child: WebView(
+                initialUrl: Uri.dataFromString(
+                  '<html>'
+                      '<head>'
+                      '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+                      '<style>'
+                      'body { font-size: 16px; font-family: Helvetica, Sans-Serif;}'
+                      'img, video, iframe { max-width: 100%; height: auto; }'
+                      '</style>'
+                      '</head>'
+                      '<body>${post.content}</body>'
+                      '</html>',
+                  mimeType: 'text/html',
+                  encoding: Encoding.getByName('utf-8'),
+                ).toString(),
+                javascriptMode: JavascriptMode.unrestricted,
+                navigationDelegate: (NavigationRequest request) {
+                  if (request.url.startsWith('http')) {
+                    _launchURL(Uri.parse(request.url));
+                    return NavigationDecision.prevent;
+                  }
+                  return NavigationDecision.navigate;
+                },
+              ),
             ),
           ),
         ],
@@ -167,6 +193,8 @@ class PostDetailScreen extends StatelessWidget {
     }
   }
 }
+
+
 
 class Post {
   final String title;
