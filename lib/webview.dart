@@ -4,7 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class CustomWebView extends StatefulWidget {
   final String url;
 
-  const CustomWebView({Key? key, required this.url}) : super(key: key);
+  const CustomWebView({super.key, required this.url});
 
   @override
   CustomWebViewState createState() => CustomWebViewState();
@@ -31,9 +31,8 @@ class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserve
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed && _errorOccurred) {
-      // Reload the WebView only if an error occurred previously
       _controller.reload();
-      _errorOccurred = false; // Reset the error flag
+      _errorOccurred = false;
     }
   }
 
@@ -41,25 +40,26 @@ class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserve
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        WebView(
-          initialUrl: widget.url,
-          javascriptMode: JavascriptMode.unrestricted, // Import this enum from webview_flutter
-          onWebViewCreated: (WebViewController webViewController) {
-            _controller = webViewController;
-          },
-          onPageStarted: (String url) {
-            setState(() => _isLoading = true);
-          },
-          onPageFinished: (String url) {
-            setState(() => _isLoading = false);
-          },
-          onWebResourceError: (WebResourceError error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error loading page: ${error.description}')),
-            );
-            _errorOccurred = true; // Set the error flag
-          },
-          gestureNavigationEnabled: true,
+        Container(
+          color: const Color(0xFFB81717), // Set the background color
+          child: WebView(
+            initialUrl: widget.url,
+            javascriptMode: JavascriptMode.unrestricted,
+            onWebViewCreated: (WebViewController webViewController) {
+              _controller = webViewController;
+            },
+            onPageStarted: (String url) {
+              setState(() => _isLoading = true);
+            },
+            onPageFinished: (String url) {
+              setState(() => _isLoading = false);
+            },
+            onWebResourceError: (WebResourceError error) {
+              print('Error loading page: ${error.description}');
+              _errorOccurred = true;
+            },
+            gestureNavigationEnabled: true,
+          ),
         ),
         if (_isLoading)
           Container(
@@ -70,4 +70,5 @@ class CustomWebViewState extends State<CustomWebView> with WidgetsBindingObserve
       ],
     );
   }
+
 }

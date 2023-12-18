@@ -12,14 +12,26 @@ class RadioSheet extends StatelessWidget {
       future: fetchRadioContent(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          // Center widget with a black background
+          return Container(
+            color: Colors.black,  // Set the background color to black
+            child: const Center(
+              child: SizedBox(
+                width: 50,  // Adjust width as needed
+                height: 50, // Adjust height as needed
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
         } else if (snapshot.hasError) {
+          // Display the error
           return Text('Error: ${snapshot.error}');
         } else if (snapshot.data?.isEmpty ?? true) {
-          return const Text('No data available'); // Handle the case when there is no data
+          // Handle the case when there is no data
+          return const Text('No data available');
         } else {
-          // Data is fetched successfully
-          return buildSheet(context, snapshot.data!);
+          // Data is fetched successfully, build the sheet
+          return buildSheet(context, snapshot.data!); // Ensure that buildSheet is correctly implemented
         }
       },
     );
@@ -50,7 +62,7 @@ class RadioSheet extends StatelessWidget {
               Image.network(
                 content[0].topImage,
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width / 2, // Set image height to half of its width
+                height: MediaQuery.of(context).size.width * 0.4, // Set image height to half of its width
                 fit: BoxFit.cover, // Ensure the image covers the available width
               ),
             const SizedBox(
@@ -60,8 +72,8 @@ class RadioSheet extends StatelessWidget {
               shrinkWrap: true,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, // Number of columns
-                crossAxisSpacing: 10.0, // Spacing between columns
-                mainAxisSpacing: 10.0, // Spacing between rows
+                crossAxisSpacing: 24.0, // Spacing between columns
+                mainAxisSpacing: 18.0, // Spacing between rows
                 childAspectRatio: 3.0, // Aspect ratio for each button (adjust as needed)
               ),
               itemCount: content.length,
@@ -79,7 +91,7 @@ class RadioSheet extends StatelessWidget {
                   ),
                   child: Text(
                     item.name,
-                    style: const TextStyle(fontSize: 16,
+                    style: const TextStyle(fontSize: 26,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Oswald',
                     ), // Adjust the text size as needed

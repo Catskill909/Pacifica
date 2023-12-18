@@ -47,6 +47,14 @@ dependencies:
   just_audio: ^0.9.35
   url_launcher: ^6.2.1
   html: ^0.15.4
+  flutter_native_splash: ^2.3.8
+
+flutter_native_splash:
+  color: "#000000" # Replace with your desired background color
+  image: assets/kpft.png # Replace with your splash image path
+  android: true
+  ios: true
+
 
 dev_dependencies:
   flutter_test:
