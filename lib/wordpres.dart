@@ -39,7 +39,7 @@ class WordPressIntegrationScreenState extends State<WordPressIntegrationScreen> 
   }
 
   Future<List<Post>> fetchPosts() async {
-    final response = await http.get(Uri.parse('https://kpft.org/wp-json/wp/v2/posts?per_page=10'));
+    final response = await http.get(Uri.parse('https://kpft.org/wp-json/wp/v2/posts?per_page=20'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -79,10 +79,11 @@ class WordPressIntegrationScreenState extends State<WordPressIntegrationScreen> 
               return Center(child: Text('Error: ${snapshot.error}'));
             }
 
-            return ListView.builder(
+            return ListView.separated(
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 return ListTile(
+                  trailing: const Icon(Icons.arrow_forward_ios), // Adds ">" icon
                   tileColor: Colors.grey[850], // Dark tile background color
                   title: Text(
                     snapshot.data![index].title,
@@ -102,6 +103,10 @@ class WordPressIntegrationScreenState extends State<WordPressIntegrationScreen> 
                     );
                   },
                 );
+              },
+              // Divider widget as a separator
+              separatorBuilder: (context, index) {
+                return const Divider(color: Colors.grey, height: 1);
               },
             );
           } else {
@@ -125,62 +130,43 @@ class PostDetailScreen extends StatelessWidget {
         title: const Text(
           'KPFT News',
           style: TextStyle(
-            color: Colors.white, // Set the text color to white for dark mode
-            fontFamily: 'Oswald', // Use the "Oswald" font family
+            color: Colors.white,
+            fontFamily: 'Oswald',
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.black, // Set the background color to black for dark mode
-        iconTheme: const IconThemeData(color: Colors.white), // Set icon color to white
-        automaticallyImplyLeading: true, // Allow the back arrow
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: true,
       ),
-
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              post.title,
-              style: const TextStyle(
-                fontSize: 20.0,
-                fontFamily: 'Oswald', // The font family name you used in pubspec.yaml
-                fontWeight: FontWeight.w600
-              ),
-            ),
-          ),
-          Expanded(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (scrollNotification) {
-                // Consume the scroll event to prevent it from bubbling up and affecting the parent ListView.
-                return true;
-              },
-              child: WebView(
-                initialUrl: Uri.dataFromString(
-                  '<html>'
-                      '<head>'
-                      '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
-                      '<style>'
-                      'body { font-size: 16px; font-family: Helvetica, Sans-Serif;}'
-                      'img, video, iframe { max-width: 100%; height: auto; }'
-                      '</style>'
-                      '</head>'
-                      '<body>${post.content}</body>'
-                      '</html>',
-                  mimeType: 'text/html',
-                  encoding: Encoding.getByName('utf-8'),
-                ).toString(),
-                javascriptMode: JavascriptMode.unrestricted,
-                navigationDelegate: (NavigationRequest request) {
-                  if (request.url.startsWith('http')) {
-                    _launchURL(Uri.parse(request.url));
-                    return NavigationDecision.prevent;
-                  }
-                  return NavigationDecision.navigate;
-                },
-              ),
-            ),
-          ),
-        ],
+      body: Expanded(
+        child: WebView(
+          initialUrl: Uri.dataFromString(
+            '<html>'
+                '<head>'
+                '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+                '<style>'
+                'body { font-size: 16px; font-family: Helvetica, Sans-Serif;}'
+                'img, video, iframe { max-width: 100%; height: auto; }'
+                '</style>'
+                '</head>'
+                '<body>'
+                '<h1>${post.title}</h1>' // Added post title here with <h1> tag
+                '${post.content}' // Post content
+                '</body>'
+                '</html>',
+            mimeType: 'text/html',
+            encoding: Encoding.getByName('utf-8'),
+          ).toString(),
+          javascriptMode: JavascriptMode.unrestricted,
+          navigationDelegate: (NavigationRequest request) {
+            if (request.url.startsWith('http')) {
+              _launchURL(Uri.parse(request.url));
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
       ),
     );
   }
@@ -193,7 +179,6 @@ class PostDetailScreen extends StatelessWidget {
     }
   }
 }
-
 
 
 class Post {
