@@ -139,8 +139,7 @@ class PostDetailScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
         automaticallyImplyLeading: true,
       ),
-      body: Expanded(
-        child: WebView(
+      body: WebView(
           initialUrl: Uri.dataFromString(
             '<html>'
                 '<head>'
@@ -166,7 +165,6 @@ class PostDetailScreen extends StatelessWidget {
             }
             return NavigationDecision.navigate;
           },
-        ),
       ),
     );
   }
