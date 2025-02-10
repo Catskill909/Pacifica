@@ -2,7 +2,7 @@ name: pacifica2
 description: A new Flutter project.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0
 
 environment:
-  sdk: '>=3.1.5 <4.0.0'
+  sdk: ">=3.1.5 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,14 +32,14 @@ dependencies:
     sdk: flutter
 
   http: ^1.1.0
-  webview_flutter: ^3.0.0
+  webview_flutter: ^4.8.0
   audio_session: ^0.1.14
-  rxdart: ^0.27.7
+  rxdart: ^0.28.0
   just_audio_mpv: ^0.1.6
   just_audio_windows: ^0.2.0
   audio_service: ^0.18.12
   cached_network_image: ^3.2.1
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -56,7 +56,6 @@ flutter_native_splash:
   android: true
   ios: true
 
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -66,7 +65,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.1
+  flutter_lints: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

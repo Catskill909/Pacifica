@@ -15,10 +15,10 @@ class RadioSheet extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Center widget with a black background
           return Container(
-            color: Colors.black,  // Set the background color to black
+            color: Colors.black, // Set the background color to black
             child: const Center(
               child: SizedBox(
-                width: 50,  // Adjust width as needed
+                width: 50, // Adjust width as needed
                 height: 50, // Adjust height as needed
                 child: CircularProgressIndicator(),
               ),
@@ -32,7 +32,10 @@ class RadioSheet extends StatelessWidget {
           return const Text('No data available');
         } else {
           // Data is fetched successfully, build the sheet
-          return buildSheet(context, snapshot.data!); // Ensure that buildSheet is correctly implemented
+          return buildSheet(
+              context,
+              snapshot
+                  .data!); // Ensure that buildSheet is correctly implemented
         }
       },
     );
@@ -43,19 +46,24 @@ class RadioSheet extends StatelessWidget {
 
     return Container(
       color: Colors.black, // Set the background color to black
-      height: MediaQuery.of(context).size.height - topPadding, // Adjust the height
+      height:
+          MediaQuery.of(context).size.height - topPadding, // Adjust the height
       child: SingleChildScrollView(
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Make the column use minimum vertical space
+          mainAxisSize:
+              MainAxisSize.min, // Make the column use minimum vertical space
           children: [
             Stack(
               children: [
                 // KPFT logo centered
                 Align(
-                  alignment: Alignment.topCenter, // Align KPFT logo to top center
+                  alignment:
+                      Alignment.topCenter, // Align KPFT logo to top center
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 10.0), // Adjust top padding to position the logo
-                    child: Image.asset('assets/kpft.png', width: 80), // Adjust width as needed
+                    padding: const EdgeInsets.only(
+                        top: 10.0), // Adjust top padding to position the logo
+                    child: Image.asset('assets/kpft.png',
+                        width: 80), // Adjust width as needed
                   ),
                 ),
                 // Close icon aligned to the top right
@@ -77,17 +85,22 @@ class RadioSheet extends StatelessWidget {
               Image.network(
                 content[0].topImage,
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width * 0.4, // Set image height to half of its width
-                fit: BoxFit.cover, // Ensure the image covers the available width
+                height: MediaQuery.of(context).size.width *
+                    0.4, // Set image height to half of its width
+                fit:
+                    BoxFit.cover, // Ensure the image covers the available width
               ),
             const SizedBox(
               height: 10, // Add some spacing between the image and buttons
             ),
-            Padding( // Wrap GridView.builder with Padding
-              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 0), // Apply horizontal and top padding
+            Padding(
+              // Wrap GridView.builder with Padding
+              padding: const EdgeInsets.fromLTRB(
+                  16.0, 8.0, 16.0, 0), // Apply horizontal and top padding
               child: GridView.builder(
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(), // Disable GridView's own scrolling
+                physics:
+                    const NeverScrollableScrollPhysics(), // Disable GridView's own scrolling
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2, // Number of columns
                   crossAxisSpacing: 24.0, // Spacing between columns
@@ -99,17 +112,23 @@ class RadioSheet extends StatelessWidget {
                   final item = content[index];
                   return ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Color(int.parse('0xff${item.color.replaceFirst('#', '')}')),
-                      backgroundColor: Color(int.parse('0xff${item.color2.replaceFirst('#', '')}')),
-                      padding: const EdgeInsets.all(6.0), // Adjust the button padding as needed
-                      minimumSize: const Size(50, 20), // Set the fixed button width and height
+                      foregroundColor: Color(
+                          int.parse('0xff${item.color.replaceFirst('#', '')}')),
+                      backgroundColor: Color(int.parse(
+                          '0xff${item.color2.replaceFirst('#', '')}')),
+                      padding: const EdgeInsets.all(
+                          6.0), // Adjust the button padding as needed
+                      minimumSize: const Size(
+                          50, 20), // Set the fixed button width and height
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0), // Adjust the border radius as needed
+                        borderRadius: BorderRadius.circular(
+                            10.0), // Adjust the border radius as needed
                       ),
                     ),
                     child: Text(
                       item.name,
-                      style: const TextStyle(fontSize: 26,
+                      style: const TextStyle(
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Oswald',
                       ), // Adjust the text size as needed
@@ -129,14 +148,12 @@ class RadioSheet extends StatelessWidget {
     );
   }
 
-
-
   Future<void> _launchURL(String urlString) async {
-    if (await canLaunch(urlString)) {
-      await launch(urlString);
+    final Uri url = Uri.parse(urlString);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
     } else {
       throw 'Could not launch $urlString';
     }
   }
-
 }

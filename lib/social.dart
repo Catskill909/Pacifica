@@ -6,14 +6,15 @@ import 'package:url_launcher/url_launcher.dart';
 // Define the SocialIcons widget
 class SocialIcons extends StatelessWidget {
   // Constructor for the SocialIcons widget
-  const SocialIcons({Key? key}) : super(key: key);
+  const SocialIcons({super.key});
 
   // Override the build method for the SocialIcons widget
   @override
   Widget build(BuildContext context) {
     // Return a Row widget containing a list of SocialIcon widgets
     return Padding(
-      padding: const EdgeInsets.only(top: 0.0, bottom: 2.0), // Add different padding on top and bottom
+      padding: const EdgeInsets.only(
+          top: 0.0, bottom: 2.0), // Add different padding on top and bottom
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -83,14 +84,14 @@ class SocialIcon extends StatelessWidget {
 
   // Constructor for the SocialIcon widget
   const SocialIcon({
-    Key? key,
+    super.key,
     required this.icon,
     required this.url,
     this.iconSize = 44,
     this.padding = 8,
     this.circleRadius = 28,
     required this.context, // Pass the context to the SocialIcon widget
-  }) : super(key: key);
+  });
 
   // Override the build method for the SocialIcon widget
   @override

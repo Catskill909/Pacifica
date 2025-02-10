@@ -20,18 +20,32 @@ void main() async {
   runApp(MyApp(handler: handler));
 }
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
     Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/home');
+      // Check if the widget is still mounted before navigating
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light
+            .copyWith(statusBarColor: Colors.transparent),
         child: Center(child: Image.asset('assets/kpft.png', width: 200)),
       ),
     );
@@ -82,7 +96,8 @@ class AudioPlayerHandler extends BaseAudioHandler {
 
   @override
   Future<void> play() async {
-    if (_player.processingState == ProcessingState.idle || _player.processingState == ProcessingState.completed) {
+    if (_player.processingState == ProcessingState.idle ||
+        _player.processingState == ProcessingState.completed) {
       await _player.setUrl(_mediaItem.id);
     }
     await _player.play();
@@ -139,21 +154,23 @@ class MyHomePage extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        final double topPadding = MediaQuery.of(context).padding.top; // Get top safe area height
+        final double topPadding =
+            MediaQuery.of(context).padding.top; // Get top safe area height
         final double screenHeight = MediaQuery.of(context).size.height;
 
         // Adjust this value to control the additional offset from the top
         const double additionalTopOffset = 30; // You can adjust this value
 
         return SizedBox(
-          height: screenHeight - topPadding - additionalTopOffset, // Subtract additional offset
-          child: const WordPressIntegrationScreen(), // Your widget from wordpres.dart
+          height: screenHeight -
+              topPadding -
+              additionalTopOffset, // Subtract additional offset
+          child:
+              const WordPressIntegrationScreen(), // Your widget from wordpres.dart
         );
       },
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -198,8 +215,10 @@ class AudioControls extends StatelessWidget {
           child: Container(
             width: 90.0,
             height: 90.0,
-            decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black),
-            child: Icon(playing ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 70.0),
+            decoration: const BoxDecoration(
+                shape: BoxShape.circle, color: Colors.black),
+            child: Icon(playing ? Icons.pause : Icons.play_arrow,
+                color: Colors.white, size: 70.0),
           ),
         );
       },
@@ -211,13 +230,18 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
   final Function() onInfoPressed;
   final MediaQueryData mediaQuery;
 
-  const CustomNavBar({super.key, required this.onInfoPressed, required this.mediaQuery});
+  const CustomNavBar(
+      {super.key, required this.onInfoPressed, required this.mediaQuery});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: mediaQuery.padding.top),
-      decoration: const BoxDecoration(gradient: LinearGradient(colors: [Colors.black, Colors.black87], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+      decoration: const BoxDecoration(
+          gradient: LinearGradient(
+              colors: [Colors.black, Colors.black87],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter)),
       child: Padding(
         padding: const EdgeInsets.only(top: 0.0, bottom: 0.0),
         child: Row(
@@ -252,7 +276,8 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _buildBottomSheetIconButton(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.info, color: Colors.white), // Replace 'Icons.add' with your desired icon
+      icon: const Icon(Icons.info,
+          color: Colors.white), // Replace 'Icons.add' with your desired icon
       onPressed: () {
         _showBottomSheet(context);
       },
@@ -265,20 +290,25 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        final double topPadding = MediaQuery.of(context).padding.top; // Get top safe area height
+        final double topPadding =
+            MediaQuery.of(context).padding.top; // Get top safe area height
 
         // Adjust this value to control the additional offset from the top
-        const double additionalTopOffset = 30; // Set this to 0 to start from the top
+        const double additionalTopOffset =
+            30; // Set this to 0 to start from the top
 
         return SizedBox(
-          height: MediaQuery.of(context).size.height - topPadding - additionalTopOffset,
-          child: const RadioSheet(), // Display the RadioSheet widget in the bottom sheet
+          height: MediaQuery.of(context).size.height -
+              topPadding -
+              additionalTopOffset,
+          child:
+              const RadioSheet(), // Display the RadioSheet widget in the bottom sheet
         );
       },
     );
   }
 
-
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight + mediaQuery.padding.top);
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + mediaQuery.padding.top);
 }
