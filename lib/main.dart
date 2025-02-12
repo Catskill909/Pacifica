@@ -6,9 +6,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'webview.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
 import 'sheet.dart'; // Import the RadioSheet widget
+import 'dart:developer';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  log('App started');
   final handler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
     config: const AudioServiceConfig(
@@ -31,12 +33,37 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    log('Splash screen initialized');
     Future.delayed(const Duration(seconds: 3), () {
-      // Check if the widget is still mounted before navigating
       if (mounted) {
+        log('Navigating to home screen');
         Navigator.pushReplacementNamed(context, '/home');
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant SplashScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    log('Splash screen did update widget');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    log('Splash screen did change dependencies');
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    log('Splash screen deactivate');
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    log('Splash screen dispose');
   }
 
   @override

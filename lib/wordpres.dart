@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:html/parser.dart' show parse;
+import 'dart:developer' as developer;
 
 void main() {
   runApp(const MyApp());
@@ -37,17 +38,33 @@ class WordPressIntegrationScreenState
   @override
   void initState() {
     super.initState();
+    developer.log('WordPress integration screen initialized');
     posts = fetchPosts();
   }
 
+  @override
+  void didUpdateWidget(WordPressIntegrationScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    developer.log('WordPress integration screen updated');
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    developer.log('WordPress integration screen disposed');
+  }
+
   Future<List<Post>> fetchPosts() async {
+    developer.log('Fetching posts from WordPress');
     final response = await http
         .get(Uri.parse('https://kpft.org/wp-json/wp/v2/posts?per_page=20'));
 
     if (response.statusCode == 200) {
+      developer.log('Posts fetched successfully');
       List<dynamic> data = json.decode(response.body);
       return data.map((json) => Post.fromJson(json)).toList();
     } else {
+      developer.log('Failed to load posts: ${response.statusCode}');
       throw Exception('Failed to load posts');
     }
   }
@@ -139,7 +156,7 @@ class PostDetailScreenState extends State<PostDetailScreen> {
   @override
   void initState() {
     super.initState();
-
+    developer.log('Post detail screen initialized');
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -173,6 +190,18 @@ class PostDetailScreenState extends State<PostDetailScreen> {
         encoding: Encoding.getByName('utf-8'),
       ),
     );
+  }
+
+  @override
+  void didUpdateWidget(PostDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    developer.log('Post detail screen updated');
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    developer.log('Post detail screen disposed');
   }
 
   void _launchURL(Uri url) async {

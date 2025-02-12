@@ -20,6 +20,7 @@ class CustomWebViewState extends State<CustomWebView>
   @override
   void initState() {
     super.initState();
+    log('WebView initialized');
     WidgetsBinding.instance.addObserver(this);
 
     _controller = WebViewController()
@@ -28,27 +29,33 @@ class CustomWebViewState extends State<CustomWebView>
         NavigationDelegate(
           onPageStarted: (String url) {
             setState(() => _isLoading = true);
+            log('Loading page: $url');
           },
           onPageFinished: (String url) {
             setState(() => _isLoading = false);
+            log('Finished loading page: $url');
           },
           onWebResourceError: (WebResourceError error) {
-            log('Error loading page: ${error.description}'); // Use log instead of print
+            log('Error loading page: ${error.description}');
             _errorOccurred = true;
           },
         ),
       )
       ..loadRequest(Uri.parse(widget.url));
+    log('initState completed');
   }
 
   @override
   void dispose() {
+    log('WebView disposed');
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+    log('dispose completed');
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    log('didChangeAppLifecycleState: $state');
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed && _errorOccurred) {
       _controller.reload();
