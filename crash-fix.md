@@ -53,3 +53,30 @@ Future<void> dispose() async {
 2. Test locally in release mode
 3. If successful, push to repository
 4. Deploy new TestFlight build for user testing
+
+## Future Maintenance Tasks
+### Xcode Recommended Settings Updates
+1. **Runner Project Settings**
+   - Current Status: Shows "Update to recommended settings" warning
+   - Includes: Build settings and configuration updates
+   - Priority: Low (not affecting app functionality)
+   - Can be addressed in future maintenance update
+
+2. **Pods Project Settings**
+   - Current Status: Shows "Update to recommended settings" warning
+   - Includes: Build settings for CocoaPods dependencies
+   - Priority: Low (not affecting app functionality)
+   - Can be addressed in future maintenance update
+
+3. **iOS Deployment Target**
+   - Status: ✅ Fixed
+   - Updated Podfile to set minimum iOS version to 12.0
+   - Previous warning resolved
+
+Note: These recommended settings updates are optimization suggestions from Xcode and not critical issues. They can be addressed in a future maintenance update after the crash fixes are confirmed working.
+
+4. **APNs Warning (ITMS-90078)**
+   - Warning about missing push notification entitlement
+   - Can be suppressed by setting `ENABLE_BITCODE=NO` in build settings
+   - Not affecting app functionality
+   - Low priority - can be addressed if warning becomes problematic
