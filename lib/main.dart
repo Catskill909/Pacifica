@@ -26,7 +26,7 @@ void main() async {
   binding.addObserver(AppLifecycleListener(
     onDetach: () async {
       log('App detaching - cleaning up resources');
-      await (handler as AudioPlayerHandler).dispose();
+      await handler.dispose();
     },
   ));
 
@@ -102,6 +102,8 @@ class AudioPlayerHandler extends BaseAudioHandler {
   }
 
   Future<void> dispose() async {
+    // Stop playback first to prevent event broadcasting during disposal
+    await _player.stop();
     await _eventSubscription.cancel();
     await _player.dispose();
   }
