@@ -7,6 +7,7 @@ import 'webview.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
 import 'sheet.dart'; // Import the RadioSheet widget
 import 'dart:developer';
+import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,16 @@ void main() async {
       androidNotificationOngoing: true,
     ),
   );
+
+  // Handle app lifecycle for cleanup
+  final binding = WidgetsBinding.instance;
+  binding.addObserver(AppLifecycleListener(
+    onDetach: () async {
+      log('App detaching - cleaning up resources');
+      await (handler as AudioPlayerHandler).dispose();
+    },
+  ));
+
   runApp(MyApp(handler: handler));
 }
 
@@ -83,9 +94,16 @@ class AudioPlayerHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   late MediaItem _mediaItem;
 
+  late final StreamSubscription<PlaybackEvent> _eventSubscription;
+
   AudioPlayerHandler() {
-    _player.playbackEventStream.listen(_broadcastState);
+    _eventSubscription = _player.playbackEventStream.listen(_broadcastState);
     _setInitialMediaItem();
+  }
+
+  Future<void> dispose() async {
+    await _eventSubscription.cancel();
+    await _player.dispose();
   }
 
   void _broadcastState(PlaybackEvent event) {
