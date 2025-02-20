@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'widgets/bottom_navigation.dart';
 import 'webview.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
 import 'sheet.dart'; // Import the RadioSheet widget
@@ -94,6 +95,12 @@ class AudioPlayerHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   late MediaItem _mediaItem;
 
+  static const Map<String, String> streamUrls = {
+    'HD1': 'https://streams.pacifica.org:9000/live_64',
+    'HD2': 'https://streams.pacifica.org:9000/HD3_128',
+    'HD3': 'https://streams.pacifica.org:9000/classic_country',
+  };
+
   late final StreamSubscription<PlaybackEvent> _eventSubscription;
 
   AudioPlayerHandler() {
@@ -131,11 +138,11 @@ class AudioPlayerHandler extends BaseAudioHandler {
 
   Future<void> _setInitialMediaItem() async {
     _mediaItem = MediaItem(
-      id: "https://streams.pacifica.org:9000/live_64",
+      id: "HD1",
       album: "Live on the air",
-      title: "KPFT 90.1 FM",
+      title: "KPFT HD1",
       artist: "Houston's Community Station",
-      duration: const Duration(milliseconds: 5739820),
+      duration: const Duration(hours: 24),
       artUri: Uri.parse("https://starkey.digital/app/kpft2.png"),
     );
     await setMediaItem(_mediaItem);
@@ -145,7 +152,10 @@ class AudioPlayerHandler extends BaseAudioHandler {
   Future<void> play() async {
     if (_player.processingState == ProcessingState.idle ||
         _player.processingState == ProcessingState.completed) {
-      await _player.setUrl(_mediaItem.id);
+      final streamUrl = streamUrls[_mediaItem.id];
+      if (streamUrl != null) {
+        await _player.setUrl(streamUrl);
+      }
     }
     await _player.play();
   }
@@ -167,9 +177,16 @@ class AudioPlayerHandler extends BaseAudioHandler {
   }
 
   Future<void> setMediaItem(MediaItem mediaItem) async {
-    await _player.setUrl(mediaItem.id);
-    _mediaItem = mediaItem.copyWith(duration: await _player.durationFuture);
-    _broadcastState(_player.playbackEvent);
+    final streamUrl = streamUrls[mediaItem.id];
+    if (streamUrl != null) {
+      await _player.stop();
+      await _player.setUrl(streamUrl);
+      _mediaItem = mediaItem.copyWith(duration: const Duration(hours: 24));
+      _broadcastState(_player.playbackEvent);
+      if (_player.playing) {
+        await _player.play();
+      }
+    }
   }
 }
 
@@ -191,10 +208,19 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   final AudioPlayerHandler handler;
 
   const MyHomePage({super.key, required this.handler});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _currentIndex = 0;
+  String _currentWebViewUrl = 'https://starkey.digital/app/';
+
 
   void _showWordpressSheet(BuildContext context) {
     showModalBottomSheet(
@@ -230,18 +256,33 @@ class MyHomePage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const Flexible(
+            Flexible(
               flex: 8,
-              child: CustomWebView(url: 'https://starkey.digital/app/'),
+              child: CustomWebView(url: _currentWebViewUrl),
             ),
             Flexible(
               flex: 2,
-              child: AudioControls(handler: handler),
+              child: AudioControls(handler: widget.handler),
             ),
           ],
         ),
       ),
       backgroundColor: const Color(0xFFB81717),
+      bottomNavigationBar: StreamBottomNavigation(
+        currentIndex: _currentIndex,
+        onTabChanged: (streamId, webViewUrl) {
+          setState(() {
+            _currentIndex = ['HD1', 'HD2', 'HD3'].indexOf(streamId);
+            _currentWebViewUrl = webViewUrl;
+          });
+          // Update audio stream
+          widget.handler.setMediaItem(MediaItem(
+            id: streamId,
+            title: 'KPFT $streamId',
+            artist: 'KPFT',
+          ));
+        },
+      ),
     );
   }
 }
