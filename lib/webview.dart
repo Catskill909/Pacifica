@@ -46,6 +46,15 @@ class CustomWebViewState extends State<CustomWebView>
   }
 
   @override
+  void didUpdateWidget(CustomWebView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      log('URL changed from ${oldWidget.url} to ${widget.url}');
+      _controller.loadRequest(Uri.parse(widget.url));
+    }
+  }
+
+  @override
   void dispose() {
     log('WebView disposed');
     WidgetsBinding.instance.removeObserver(this);

@@ -221,6 +221,12 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   String _currentWebViewUrl = 'https://starkey.digital/app/';
 
+  static const Map<String, String> webViewUrls = {
+    'HD1': 'https://starkey.digital/app/',
+    'HD2': 'https://starkey.digital/app2/',
+    'HD3': 'https://starkey.digital/app3/',
+  };
+
 
   void _showWordpressSheet(BuildContext context) {
     showModalBottomSheet(
@@ -270,10 +276,10 @@ class _MyHomePageState extends State<MyHomePage> {
       backgroundColor: const Color(0xFFB81717),
       bottomNavigationBar: StreamBottomNavigation(
         currentIndex: _currentIndex,
-        onTabChanged: (streamId, webViewUrl) {
+        onTabChanged: (streamId) {
           setState(() {
             _currentIndex = ['HD1', 'HD2', 'HD3'].indexOf(streamId);
-            _currentWebViewUrl = webViewUrl;
+            _currentWebViewUrl = webViewUrls[streamId] ?? _currentWebViewUrl;
           });
           // Update audio stream
           widget.handler.setMediaItem(MediaItem(

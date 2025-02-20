@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class StreamBottomNavigation extends StatelessWidget {
-  final Function(String streamId, String webViewUrl) onTabChanged;
+  final Function(String streamId) onTabChanged;
   final int currentIndex;
 
   const StreamBottomNavigation({
@@ -22,13 +22,7 @@ class StreamBottomNavigation extends StatelessWidget {
     }
 
     final String streamId = ['HD1', 'HD2', 'HD3'][index];
-    final String webViewUrl = [
-      'https://starkey.digital/app/',
-      'https://starkey.digital/app2/',
-      'https://starkey.digital/app3/',
-    ][index];
-
-    onTabChanged(streamId, webViewUrl);
+    onTabChanged(streamId);
   }
 
   @override
