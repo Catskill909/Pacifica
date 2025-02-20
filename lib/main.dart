@@ -330,7 +330,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: mediaQuery.padding.top),
+      padding: EdgeInsets.only(top: mediaQuery.padding.top - 4),
       decoration: const BoxDecoration(
           gradient: LinearGradient(
               colors: [Colors.black, Colors.black87],
@@ -355,7 +355,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
     return IconButton(
       icon: const Icon(Icons.feed, color: Colors.white),
       onPressed: onInfoPressed,
-      iconSize: 26,
+      iconSize: 32,
     );
   }
 
@@ -375,7 +375,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
       onPressed: () {
         _showBottomSheet(context);
       },
-      iconSize: 26,
+      iconSize: 32,
     );
   }
 

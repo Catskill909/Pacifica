@@ -27,17 +27,8 @@ class StreamBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the bottom padding for safe area
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
     return Container(
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      decoration: const BoxDecoration(
-        color: Colors.black,
-        border: Border(
-          top: BorderSide(color: Colors.grey, width: 0.5),
-        ),
-      ),
+      color: Colors.black,
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) => _handleTabTap(index, context),
@@ -45,6 +36,14 @@ class StreamBottomNavigation extends StatelessWidget {
         backgroundColor: Colors.black,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey[400],
+        selectedFontSize: 16,
+        unselectedFontSize: 16,
+        showUnselectedLabels: true,
+        enableFeedback: true,
+        landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900),
+        iconSize: 32,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.radio),
