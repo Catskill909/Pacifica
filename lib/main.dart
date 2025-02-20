@@ -285,7 +285,8 @@ class _MyHomePageState extends State<MyHomePage> {
           widget.handler.setMediaItem(MediaItem(
             id: streamId,
             title: 'KPFT $streamId',
-            artist: 'KPFT',
+            artist: "Houston's Community Station",
+            artUri: Uri.parse("https://starkey.digital/app/kpft2.png"),
           ));
         },
       ),
@@ -355,7 +356,8 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
     return IconButton(
       icon: const Icon(Icons.feed, color: Colors.white),
       onPressed: onInfoPressed,
-      iconSize: 32,
+      iconSize: 40,
+      padding: EdgeInsets.zero,
     );
   }
 
@@ -375,7 +377,8 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
       onPressed: () {
         _showBottomSheet(context);
       },
-      iconSize: 32,
+      iconSize: 40,
+      padding: EdgeInsets.zero,
     );
   }
 
