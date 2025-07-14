@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+
 // Define a class to represent each item in the JSON data
 class RadioContent {
   String name;
@@ -60,14 +61,14 @@ Future<List<RadioContent>> fetchRadioContent() async {
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
-        print('[fetchRadioContent] Success on attempt ${attempt + 1}');
+
         return parseRadioContent(response.body);
       } else {
-        print('[fetchRadioContent] Failed with status: \\${response.statusCode}, body: \\${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
-        lastException = Exception('Failed to load radio content (status: \\${response.statusCode})');
+
+        lastException = Exception('Failed to load radio content (status: ${response.statusCode})');
       }
     } catch (e) {
-      print('[fetchRadioContent] Exception on attempt ${attempt + 1}: $e');
+
       lastException = Exception('Exception: $e');
     }
     if (attempt < maxRetries) {
