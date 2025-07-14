@@ -301,22 +301,28 @@ class AudioControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: handler.playbackState.map((state) => state.playing).distinct(),
-      builder: (context, snapshot) {
-        final playing = snapshot.data ?? false;
-        return GestureDetector(
-          onTap: () => playing ? handler.pause() : handler.play(),
-          child: Container(
-            width: 90.0,
-            height: 90.0,
-            decoration: const BoxDecoration(
-                shape: BoxShape.circle, color: Colors.black),
-            child: Icon(playing ? Icons.pause : Icons.play_arrow,
-                color: Colors.white, size: 70.0),
-          ),
-        );
-      },
+    return Column(
+      children: [
+        const Expanded(child: SizedBox()), // Flexible space above
+        StreamBuilder<bool>(
+          stream: handler.playbackState.map((state) => state.playing).distinct(),
+          builder: (context, snapshot) {
+            final playing = snapshot.data ?? false;
+            return GestureDetector(
+              onTap: () => playing ? handler.pause() : handler.play(),
+              child: Container(
+                width: 90.0,
+                height: 90.0,
+                decoration: const BoxDecoration(
+                    shape: BoxShape.circle, color: Colors.black),
+                child: Icon(playing ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white, size: 70.0),
+              ),
+            );
+          },
+        ),
+        const Expanded(child: SizedBox()), // Flexible space below
+      ],
     );
   }
 }

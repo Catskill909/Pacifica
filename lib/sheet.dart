@@ -29,7 +29,49 @@ class RadioSheet extends StatelessWidget {
           );
         } else if (snapshot.hasError) {
           logger.e('Error fetching radio content: ${snapshot.error}'); 
-          return Text('Error: ${snapshot.error}');
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading radio content.',
+                    style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    snapshot.error.toString(),
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      // Force a rebuild by using a workaround: pop and re-open the sheet
+                      Navigator.pop(context);
+                      Future.delayed(const Duration(milliseconds: 200), () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => const RadioSheet(),
+                        );
+                      });
+                    },
+                  )
+                ],
+              ),
+            ),
+          );
         } else if (snapshot.data?.isEmpty ?? true) {
           logger.d('No radio content available'); 
           return const Text('No data available');

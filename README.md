@@ -41,6 +41,16 @@ This approach ensures that future development can efficiently leverage AI assist
 
 ## In-Progress Development
 
+### Package Updates Needed
+- Several packages have newer versions available that need to be evaluated and updated:
+  - 59 packages have newer versions available
+  - `just_audio_mpv` is discontinued and should be replaced with `just_audio_media_kit`
+  - Key updates include:
+    - Flutter core packages (async, collection, etc.)
+    - Audio-related packages (audio_service, just_audio)
+    - UI packages (flutter_launcher_icons, flutter_native_splash)
+    - Platform-specific packages (webview_flutter, url_launcher)
+
 ### Configuration File
 - A central configuration file (`config.md`) has been created to facilitate easy reskinning of the app. This file includes:
   - Images
