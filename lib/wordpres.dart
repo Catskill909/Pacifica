@@ -162,6 +162,15 @@ class PostDetailScreenState extends State<PostDetailScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onNavigationRequest: (NavigationRequest request) {
+            // Allow all iframe/embedded content to load in WebView
+            if (!request.isMainFrame) {
+              return NavigationDecision.navigate;
+            }
+            // Allow YouTube URLs to load in WebView (even if main frame)
+            if (request.url.contains('youtube.com') || request.url.contains('youtu.be')) {
+              return NavigationDecision.navigate;
+            }
+            // For all other main frame navigations, open externally
             if (request.url.startsWith('http')) {
               _launchURL(Uri.parse(request.url));
               return NavigationDecision.prevent;
