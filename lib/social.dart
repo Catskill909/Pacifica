@@ -1,4 +1,5 @@
 // Import the necessary packages
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,10 +12,19 @@ class SocialIcons extends StatelessWidget {
   // Override the build method for the SocialIcons widget
   @override
   Widget build(BuildContext context) {
+    // Compute responsive diameter so 5 icons fit on any phone.
+    final double screenWidth = MediaQuery.of(context).size.width;
+    const int count = 5;
+    const double gap = 10.0; // slightly tighter gap between icons
+    final double available = screenWidth - 32; // approximate content width
+    // Choose diameter so that (count * d) + (gaps) fits available width. Cap growth on very wide screens.
+    final double diameter = math.min(52.0, (available - gap * (count - 1)) / count);
+    final double iconSize = diameter * 0.65; // visual balance inside circle
+    final double radius = diameter / 2;
+
     // Return a Row widget containing a list of SocialIcon widgets
     return Padding(
-      padding: const EdgeInsets.only(
-          top: 0.0, bottom: 2.0), // Add different padding on top and bottom
+      padding: const EdgeInsets.only(top: 0.0, bottom: 0.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -22,48 +32,49 @@ class SocialIcons extends StatelessWidget {
           SocialIcon(
             icon: FontAwesomeIcons.twitter,
             url: 'https://twitter.com/KpftHouston',
-            iconSize: 38,
-            padding: 0,
+            iconSize: iconSize,
+            circleRadius: radius,
+            padding: 4,
             context: context, // Pass the context to the SocialIcon widget
           ),
-          // Add a SizedBox for spacing
-          const SizedBox(width: 10),
+          const SizedBox(width: gap),
           // Create a SocialIcon widget for Facebook
           SocialIcon(
             icon: FontAwesomeIcons.facebook,
             url: 'https://www.facebook.com/kpfthouston/',
-            iconSize: 38,
-            padding: 0,
+            iconSize: iconSize,
+            circleRadius: radius,
+            padding: 4,
             context: context, // Pass the context to the SocialIcon widget
           ),
-          // Add a SizedBox for spacing
-          const SizedBox(width: 10),
+          const SizedBox(width: gap),
           // Create a SocialIcon widget for Instagram
           SocialIcon(
             icon: FontAwesomeIcons.instagram,
             url: 'https://www.instagram.com/kpfthouston/?hl=en',
-            iconSize: 38,
-            padding: 0,
+            iconSize: iconSize,
+            circleRadius: radius,
+            padding: 4,
             context: context, // Pass the context to the SocialIcon widget
           ),
-          // Add a SizedBox for spacing
-          const SizedBox(width: 10),
+          const SizedBox(width: gap),
           // Create a SocialIcon widget for YouTube
           SocialIcon(
             icon: FontAwesomeIcons.youtube,
             url: 'https://www.youtube.com/channel/UCxf2097DYBA96ffsMwoV4hw',
-            iconSize: 38,
-            padding: 0,
+            iconSize: iconSize,
+            circleRadius: radius,
+            padding: 4,
             context: context, // Pass the context to the SocialIcon widget
           ),
-          // Add a SizedBox for spacing
-          const SizedBox(width: 10),
+          const SizedBox(width: gap),
           // Create a SocialIcon widget for Email
           SocialIcon(
             icon: FontAwesomeIcons.envelope,
             url: 'mailto:gm@kpft.org',
-            iconSize: 38,
-            padding: 0,
+            iconSize: iconSize,
+            circleRadius: radius,
+            padding: 4,
             context: context, // Pass the context to the SocialIcon widget
           ),
         ],

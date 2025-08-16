@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show debugPaintBaselinesEnabled;
 import 'package:flutter/services.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'core/services/connectivity_service.dart';
+import 'presentation/bloc/connectivity_cubit.dart';
+import 'presentation/widgets/offline_overlay.dart';
+import 'presentation/widgets/offline_modal.dart';
 import 'widgets/bottom_navigation.dart';
 import 'webview.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
@@ -12,6 +18,11 @@ import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Disable yellow baseline debug overlay in debug builds only
+  assert(() {
+    debugPaintBaselinesEnabled = false;
+    return true;
+  }());
   log('App started');
   final handler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
@@ -168,12 +179,26 @@ class AudioPlayerHandler extends BaseAudioHandler {
   @override
   Future<void> stop() async {
     await _player.stop();
-    await playbackState.first;
     playbackState.add(playbackState.value.copyWith(
-      controls: [],
+      controls: [MediaControl.play],
       processingState: AudioProcessingState.idle,
       playing: false,
+      updatePosition: Duration.zero,
+      bufferedPosition: Duration.zero,
     ));
+  }
+
+  // Prepare current stream without starting playback, so a single Play tap works
+  Future<void> prepareCurrent() async {
+    final streamUrl = streamUrls[_mediaItem.id];
+    if (streamUrl != null) {
+      try {
+        await _player.setUrl(streamUrl);
+        _broadcastState(_player.playbackEvent);
+      } catch (_) {
+        // ignore prepare errors; user can retry
+      }
+    }
   }
 
   Future<void> setMediaItem(MediaItem mediaItem) async {
@@ -197,13 +222,40 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/home': (context) => MyHomePage(handler: handler),
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => ConnectivityCubit(service: ConnectivityService())..initialize(),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const SplashScreen(),
+          '/home': (context) => MyHomePage(handler: handler),
+        },
+        builder: (context, child) {
+          final connState = context.watch<ConnectivityCubit>().state;
+          if (connState.firstRun) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) context.read<ConnectivityCubit>().checkNow();
+            });
+          }
+          // Only show overlay on the home screen, not on the splash screen
+          final isSplash = child is SplashScreen;
+          if (isSplash) {
+            return child;
+          }
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              child ?? const SizedBox.shrink(),
+              if (!connState.isOnline && !connState.dismissed) const OfflineOverlay(),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -254,41 +306,53 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    return Scaffold(
-      appBar: CustomNavBar(
-        mediaQuery: mediaQuery,
-        onInfoPressed: () => _showWordpressSheet(context),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Flexible(
-              flex: 8,
-              child: CustomWebView(url: _currentWebViewUrl),
-            ),
-            Flexible(
-              flex: 2,
-              child: AudioControls(handler: widget.handler),
-            ),
-          ],
+    return BlocListener<ConnectivityCubit, ConnectivityState>(
+      listenWhen: (prev, curr) => prev.isOnline != curr.isOnline,
+      listener: (context, state) async {
+        if (!state.isOnline) {
+          // Hard reset audio when network is lost so UI shows Play and player is idle
+          await widget.handler.stop();
+        } else {
+          // When back online, pre-prepare the stream so one Play tap is sufficient
+          await widget.handler.prepareCurrent();
+        }
+      },
+      child: Scaffold(
+        appBar: CustomNavBar(
+          mediaQuery: mediaQuery,
+          onInfoPressed: () => _showWordpressSheet(context),
         ),
-      ),
-      backgroundColor: const Color(0xFFB81717),
-      bottomNavigationBar: StreamBottomNavigation(
-        currentIndex: _currentIndex,
-        onTabChanged: (streamId) {
-          setState(() {
-            _currentIndex = ['HD1', 'HD2', 'HD3'].indexOf(streamId);
-            _currentWebViewUrl = webViewUrls[streamId] ?? _currentWebViewUrl;
-          });
-          // Update audio stream
-          widget.handler.setMediaItem(MediaItem(
-            id: streamId,
-            title: 'KPFT $streamId',
-            artist: "Houston's Community Station",
-            artUri: Uri.parse("https://starkey.digital/app/kpft2.png"),
-          ));
-        },
+        body: SafeArea(
+          child: Column(
+            children: [
+              Flexible(
+                flex: 8,
+                child: CustomWebView(url: _currentWebViewUrl),
+              ),
+              Flexible(
+                flex: 2,
+                child: AudioControls(handler: widget.handler),
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: const Color(0xFFB81717),
+        bottomNavigationBar: StreamBottomNavigation(
+          currentIndex: _currentIndex,
+          onTabChanged: (streamId) {
+            setState(() {
+              _currentIndex = ['HD1', 'HD2', 'HD3'].indexOf(streamId);
+              _currentWebViewUrl = webViewUrls[streamId] ?? _currentWebViewUrl;
+            });
+            // Update audio stream
+            widget.handler.setMediaItem(MediaItem(
+              id: streamId,
+              title: 'KPFT $streamId',
+              artist: "Houston's Community Station",
+              artUri: Uri.parse("https://starkey.digital/app/kpft2.png"),
+            ));
+          },
+        ),
       ),
     );
   }
@@ -304,19 +368,56 @@ class AudioControls extends StatelessWidget {
     return Column(
       children: [
         const Expanded(child: SizedBox()), // Flexible space above
-        StreamBuilder<bool>(
-          stream: handler.playbackState.map((state) => state.playing).distinct(),
+        StreamBuilder<PlaybackState>(
+          stream: handler.playbackState,
           builder: (context, snapshot) {
-            final playing = snapshot.data ?? false;
-            return GestureDetector(
-              onTap: () => playing ? handler.pause() : handler.play(),
-              child: Container(
-                width: 90.0,
-                height: 90.0,
-                decoration: const BoxDecoration(
-                    shape: BoxShape.circle, color: Colors.black),
-                child: Icon(playing ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white, size: 70.0),
+            final state = snapshot.data;
+            final playing = state?.playing ?? false;
+            final proc = state?.processingState ?? AudioProcessingState.idle;
+            final isLoading = proc == AudioProcessingState.loading || proc == AudioProcessingState.buffering;
+
+            return AbsorbPointer(
+              absorbing: isLoading,
+              child: GestureDetector(
+                onTap: () async {
+                  if (!playing) {
+                    final isOnline = context.read<ConnectivityCubit>().state.isOnline;
+                    if (!isOnline) {
+                      showGeneralDialog(
+                        context: context,
+                        barrierColor: Colors.black54,
+                        barrierDismissible: true,
+                        pageBuilder: (_, __, ___) => const OfflineModal(),
+                      );
+                      return;
+                    }
+                  }
+                  playing ? handler.pause() : handler.play();
+                },
+                child: Container(
+                  width: 90.0,
+                  height: 90.0,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black,
+                  ),
+                  child: isLoading
+                      ? const Center(
+                          child: SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          playing ? Icons.pause : Icons.play_arrow,
+                          color: Colors.white,
+                          size: 70.0,
+                        ),
+                ),
               ),
             );
           },

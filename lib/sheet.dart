@@ -176,9 +176,18 @@ class RadioSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(
-              height: 0,
+              height: 4,
             ),
-            const SocialIcons(),
+            const SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 4.0, top: 0.0),
+                child: SocialIcons(),
+              ),
+            ),
+            const SizedBox(height: 2),
+            const PrivacyPolicyButton(),
+            const SizedBox(height: 6),
           ],
         ),
       ),
@@ -188,9 +197,47 @@ class RadioSheet extends StatelessWidget {
   Future<void> _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);
     if (await canLaunchUrl(url)) {
-      await launchUrl(url);
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       throw 'Could not launch $urlString';
     }
+  }
+}
+
+class PrivacyPolicyButton extends StatelessWidget {
+  const PrivacyPolicyButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: const Color(0xFF2A2A2A),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Colors.white24),
+          ),
+        ),
+        onPressed: () async {
+          final uri = Uri.parse('https://docs.pacifica.org/kpft-privacy.html');
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            if (context.mounted) {
+              Navigator.pop(context); // dismiss sheet after launching
+            }
+          }
+        },
+        child: const Text(
+          'Privacy policy',
+          style: TextStyle(
+            fontFamily: 'Oswald',
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
   }
 }
