@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:logger/logger.dart';
 import 'vm.dart';
 import 'social.dart';
+import 'ui/responsive.dart';
 
 final logger = Logger();
 
@@ -93,6 +94,10 @@ class RadioSheet extends StatelessWidget {
 
   Widget buildSheet(BuildContext context, List<RadioContent> content) {
     final double topPadding = MediaQuery.of(context).padding.top;
+    final mq = MediaQuery.of(context);
+    final isTablet = mq.size.shortestSide >= 600;
+    final gridCols = isTablet ? 3 : 2;
+    final aspect = isTablet ? 2.6 : 3.0;
 
     return Container(
       color: Colors.black,
@@ -108,7 +113,7 @@ class RadioSheet extends StatelessWidget {
                   alignment: Alignment.topCenter,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 10.0),
-                    child: Image.asset('assets/kpft.png', width: 80),
+                    child: Image.asset('assets/kpft.png', width: ResponsiveScale.s(context, 80)),
                   ),
                 ),
                 // Close icon aligned to the top right
@@ -141,11 +146,11 @@ class RadioSheet extends StatelessWidget {
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: gridCols,
                   crossAxisSpacing: 24.0,
                   mainAxisSpacing: 18.0,
-                  childAspectRatio: 3.0,
+                  childAspectRatio: aspect,
                 ),
                 itemCount: content.length,
                 itemBuilder: (context, index) {
@@ -156,16 +161,19 @@ class RadioSheet extends StatelessWidget {
                           int.parse('0xff${item.color.replaceFirst('#', '')}')),
                       backgroundColor: Color(int.parse(
                           '0xff${item.color2.replaceFirst('#', '')}')),
-                      padding: const EdgeInsets.all(6.0),
-                      minimumSize: const Size(50, 20),
+                      padding: EdgeInsets.all(ResponsiveScale.s(context, 6.0)),
+                      minimumSize: Size(
+                        ResponsiveScale.s(context, 50),
+                        ResponsiveScale.s(context, 20),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
                     child: Text(
                       item.name,
-                      style: const TextStyle(
-                        fontSize: 26,
+                      style: TextStyle(
+                        fontSize: ResponsiveScale.s(context, 26),
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Oswald',
                       ),

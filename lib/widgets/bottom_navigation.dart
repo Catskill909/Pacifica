@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../ui/responsive.dart';
 
 class StreamBottomNavigation extends StatelessWidget {
   final Function(String streamId) onTabChanged;
@@ -36,14 +37,14 @@ class StreamBottomNavigation extends StatelessWidget {
         backgroundColor: Colors.black,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey[400],
-        selectedFontSize: 16,
-        unselectedFontSize: 16,
+        selectedFontSize: ResponsiveScale.s(context, 16),
+        unselectedFontSize: ResponsiveScale.s(context, 16),
         showUnselectedLabels: true,
         enableFeedback: true,
         landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900),
-        iconSize: 32,
+        iconSize: ResponsiveScale.s(context, 32),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.radio),

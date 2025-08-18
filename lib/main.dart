@@ -15,6 +15,7 @@ import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart 
 import 'sheet.dart'; // Import the RadioSheet widget
 import 'dart:developer';
 import 'dart:async';
+import 'ui/responsive.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -231,6 +232,13 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
+        theme: ThemeData(
+          bottomSheetTheme: const BottomSheetThemeData(
+            // Allow bottom sheets to use full available width on large screens
+            constraints: BoxConstraints(maxWidth: double.infinity),
+            backgroundColor: Colors.black,
+          ),
+        ),
         routes: {
           '/': (context) => const SplashScreen(),
           '/home': (context) => MyHomePage(handler: handler),
@@ -284,6 +292,8 @@ class _MyHomePageState extends State<MyHomePage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.black,
       builder: (BuildContext context) {
         final double topPadding =
             MediaQuery.of(context).padding.top; // Get top safe area height
@@ -395,8 +405,8 @@ class AudioControls extends StatelessWidget {
                   playing ? handler.pause() : handler.play();
                 },
                 child: Container(
-                  width: 90.0,
-                  height: 90.0,
+                  width: ResponsiveScale.s(context, 90.0),
+                  height: ResponsiveScale.s(context, 90.0),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.black,
@@ -415,7 +425,7 @@ class AudioControls extends StatelessWidget {
                       : Icon(
                           playing ? Icons.pause : Icons.play_arrow,
                           color: Colors.white,
-                          size: 70.0,
+                          size: ResponsiveScale.s(context, 70.0),
                         ),
                 ),
               ),
@@ -463,7 +473,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
     return IconButton(
       icon: const Icon(Icons.feed, color: Colors.white),
       onPressed: onInfoPressed,
-      iconSize: 40,
+      iconSize: ResponsiveScale.sFromMq(mediaQuery, 40),
       padding: EdgeInsets.zero,
     );
   }
@@ -471,8 +481,8 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _buildLogoImage() {
     return CachedNetworkImage(
       imageUrl: "https://kpft.org/wp-content/uploads/2022/01/kpft.png",
-      width: 70,
-      height: 70,
+      width: ResponsiveScale.sFromMq(mediaQuery, 70),
+      height: ResponsiveScale.sFromMq(mediaQuery, 70),
       fit: BoxFit.contain,
     );
   }
@@ -484,7 +494,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
       onPressed: () {
         _showBottomSheet(context);
       },
-      iconSize: 40,
+      iconSize: ResponsiveScale.sFromMq(mediaQuery, 40),
       padding: EdgeInsets.zero,
     );
   }
@@ -493,6 +503,8 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.black,
       builder: (BuildContext context) {
         final double topPadding =
             MediaQuery.of(context).padding.top; // Get top safe area height
@@ -514,5 +526,5 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize =>
-      Size.fromHeight(kToolbarHeight + mediaQuery.padding.top);
+      Size.fromHeight(ResponsiveScale.sFromMq(mediaQuery, kToolbarHeight) + mediaQuery.padding.top);
 }

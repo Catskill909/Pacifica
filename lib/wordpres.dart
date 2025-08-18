@@ -5,6 +5,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:html/parser.dart' show parse;
 import 'dart:developer' as developer;
+import 'ui/responsive.dart';
 
 void main() {
   runApp(const MyApp());
@@ -72,15 +73,20 @@ class WordPressIntegrationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('KPFT News',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'Oswald',
-              fontWeight: FontWeight.w600,
-            )),
+        toolbarHeight: ResponsiveScale.s(context, kToolbarHeight),
+        title: Text(
+          'KPFT News',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Oswald',
+            fontWeight: FontWeight.w600,
+            fontSize: ResponsiveScale.s(context, 20),
+          ),
+        ),
         backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: Colors.white, size: ResponsiveScale.s(context, 24)),
         actions: [
           IconButton(
             icon: const Icon(Icons.close), // Close icon
@@ -96,44 +102,54 @@ class WordPressIntegrationScreenState
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return Container(
+                color: Colors.black,
+                child: Center(child: Text('Error: ${snapshot.error}')),
+              );
             }
 
-            return ListView.separated(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  trailing:
-                      const Icon(Icons.arrow_forward_ios), // Adds ">" icon
-                  tileColor: Colors.grey[850], // Dark tile background color
-                  title: Text(
-                    snapshot.data![index].title,
-                    style: const TextStyle(
-                      fontFamily:
-                          'Oswald', // The font family name you used in pubspec.yaml
-                      fontWeight: FontWeight.w400,
-                      fontSize: 16.0, // Adjust the font size as needed
-                      color: Colors.white,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PostDetailScreen(post: snapshot.data![index]),
-                      ),
-                    );
-                  },
-                );
-              },
-              // Divider widget as a separator
-              separatorBuilder: (context, index) {
-                return const Divider(color: Colors.grey, height: 1);
-              },
+            return Container(
+              color: Colors.black,
+              child: ListView.separated(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    trailing:
+                        const Icon(Icons.arrow_forward_ios), // Adds ">" icon
+                    tileColor: Colors.grey[850], // Dark tile background color
+                    title: Builder(builder: (context) {
+                      return Text(
+                        snapshot.data![index].title,
+                        style: TextStyle(
+                          fontFamily: 'Oswald',
+                          fontWeight: FontWeight.w400,
+                          fontSize: ResponsiveScale.s(context, 16.0),
+                          color: Colors.white,
+                        ),
+                      );
+                    }),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PostDetailScreen(post: snapshot.data![index]),
+                        ),
+                      );
+                    },
+                  );
+                },
+                // Divider widget as a separator
+                separatorBuilder: (context, index) {
+                  return const Divider(color: Colors.grey, height: 1);
+                },
+              ),
             );
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return Container(
+              color: Colors.black,
+              child: const Center(child: CircularProgressIndicator()),
+            );
           }
         },
       ),
@@ -225,16 +241,18 @@ class PostDetailScreenState extends State<PostDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        toolbarHeight: ResponsiveScale.s(context, kToolbarHeight),
+        title: Text(
           'KPFT News',
           style: TextStyle(
             color: Colors.white,
             fontFamily: 'Oswald',
             fontWeight: FontWeight.w600,
+            fontSize: ResponsiveScale.s(context, 20),
           ),
         ),
         backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: Colors.white, size: ResponsiveScale.s(context, 24)),
         automaticallyImplyLeading: true,
       ),
       body: WebViewWidget(
