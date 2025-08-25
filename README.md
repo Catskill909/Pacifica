@@ -112,3 +112,106 @@ Troubleshooting
 3. Run `flutter pub get` to install dependencies
 4. Run `flutter run` to start the app in debug mode
 
+
+## Postmortem: Offline Connectivity Modal Regression (Android)
+
+This documents the failure so we do not repeat it. iOS remained OK; Android regressed.
+
+### What happened
+* __Overlay vs Dialog layering__: An offline overlay with pointer absorption conflicted with a popup dialog, intercepting taps on Android.
+* __Play path changed__: While adjusting the modal, edits unintentionally modified `AudioControls` behavior, causing Play taps to be ignored in some states.
+* __Unapplied/partial changes__: A duplicate `child` error in `OfflineOverlay` meant local changes were not building cleanly at one point, adding confusion.
+* __Lack of isolation__: Changes were not isolated to Android or to the offline UI surface; working paths were touched.
+
+### Root causes
+* __Input interception__: `AbsorbPointer` overlay above a `PopupRoute` (dialog) blocked tap events.
+* __Coupling__: Offline UI changes were coupled to the Play/Pause control path.
+* __Insufficient guardrails__: No strict rule enforced to keep Play/Pause logic unchanged while iterating on offline UX.
+
+### Impact
+* Old modal continued to appear on Android at times; buttons felt unresponsive.
+* After dismissing, Play stopped responding until state changed again.
+
+### Revert status
+* Working tree restored to last known good commit: `feat: lock app orientation` (0e444ce).
+* In‑progress work safely stashed as: "Emergency revert WIP before restoring to 'feat: lock app orientation'".
+
+---
+
+## Guardrails (Do NOT break these again)
+* __Preserve Play/Pause__: Do not change Play/Pause button position, UI, or onTap logic while working on offline UX.
+* __No blocking dialogs for offline__: Prefer a passive, non-dismissible banner/overlay that auto-hides when back online. Do not use `showDialog` for connectivity loss on Android.
+* __iOS must remain unchanged__: Android-only fixes must not affect iOS behavior.
+* __Small, reviewable changes__: One focused change at a time; run `flutter analyze` and manual tests before commit.
+* __Add logs, then code__: Instrument connectivity transitions before altering flows.
+
+---
+
+## Concrete Plan (Single Branch, keeps iOS working)
+1. __Baseline__: Keep repo on `0e444ce` (feat: lock app orientation).
+2. __Android offline UI__ (no dialogs):
+   - Implement a passive message-only overlay for Android that:
+     - Shows when `!isOnline`, blocks background taps, contains no buttons.
+     - Text: "You're offline. The radio needs internet to play. This alert closes automatically once the internet is restored."
+     - Auto-hides when `isOnline`.
+   - Do not touch `AudioControls`.
+   - Ensure overlay is not rendered over popup routes (if any appear from other features), but avoid introducing new dialogs for connectivity.
+3. __Connectivity logging__:
+   - Add debug logs in `ConnectivityCubit` on state transitions and `checkNow()` results.
+4. __QA pass (Android + iOS)__:
+   - Android: Wi‑Fi on → Play works; Airplane on → overlay shows and blocks taps; Airplane off → overlay hides; single Play tap starts playback.
+   - iOS: Verify nothing regressed.
+5. __Rollback path__:
+   - If any regression: `git restore -SW .` to revert uncommitted changes; otherwise reset to `0e444ce`.
+
+---
+
+## Files allowed to change for the Android offline fix
+* `lib/presentation/widgets/offline_overlay.dart` — implement passive, message-only overlay.
+* `lib/main.dart` — at most, adjust the global builder to ensure overlay layering does not cover popup routes. Do not modify `AudioControls`.
+* `lib/presentation/bloc/connectivity_cubit.dart` — add logs only; no behavioral coupling to Play control.
+
+---
+
+## Manual Test Matrix
+1. __Android__
+   - Launch online → tap Play → audio starts.
+   - Turn Airplane Mode ON → overlay appears; controls blocked.
+   - Turn Airplane Mode OFF → overlay disappears automatically; tap Play once → audio starts.
+   - Rotate and background/foreground app → state remains consistent.
+2. __iOS__
+   - Repeat above; ensure no changes in UI/behavior.
+
+---
+
+## Known Working Fix: Prevent Startup Modal Popup and Allow Auto-Close
+
+This section captures the first fix that worked today and should be reapplied exactly when we resume.
+
+### Goals
+* __No modal at app startup__: Avoid a jarring popup on cold launch when the device is offline.
+* __Auto-close when back online__: If a modal is shown via explicit user action, it must close itself when connectivity returns.
+* __No interference with Play controls__: Do not change Play/Pause logic.
+
+### Implementation Summary
+* __Connectivity first-run suppression__ (`lib/presentation/bloc/connectivity_cubit.dart`):
+  - Keep a `firstRun` flag. Do not trigger the modal/overlay during the initial connectivity probe on cold start.
+  - Start showing offline UI only on subsequent connectivity changes (or after a small debounce on Android).
+* __Overlay layering guard__ (`lib/main.dart`):
+  - Only insert `OfflineOverlay` when the current top route is not a `PopupRoute` (dialog). This prevents the overlay from sitting above a dialog and stealing taps.
+  - Keep overlay message-only (no buttons) and auto-hide when `isOnline`.
+* __Modal behavior__ (`lib/presentation/widgets/offline_modal.dart`):
+  - If a modal is ever shown (triggered by an explicit user action), set `barrierDismissible: false` and subscribe to connectivity.
+  - When `isOnline` becomes true, call `Navigator.of(context, rootNavigator: true).maybePop()` to auto-close.
+  - Do not modify Play/Pause button code.
+
+### Why this works
+* Prevents the initial startup popup.
+* Ensures any user-invoked modal cleanly auto-closes on reconnection.
+* Overlay never blocks dialog taps because it is not rendered over popup routes.
+
+### Reapply Checklist
+1. Add/verify `firstRun` suppression in `ConnectivityCubit`.
+2. Add overlay route check in `main.dart` before building `OfflineOverlay`.
+3. Keep modal auto-close on connectivity and `barrierDismissible: false`.
+4. Leave Play/Pause logic untouched.
