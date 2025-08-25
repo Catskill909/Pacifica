@@ -19,8 +19,16 @@ This file outlines the elements that can be configured in a central configuratio
   - Dynamic based on WordPress API response (e.g., `snapshot.data![index].title`)
 
 ## 3. Audio Stream Configuration
-- **Audio Stream URL**:
-  - URL: `https://streams.pacifica.org:9000/live_64`
+- **Playlist Endpoints (resolved at runtime)**:
+  - Configured in `lib/main.dart` → `AudioPlayerHandler.streamUrls`
+  - HD1: `https://docs.pacifica.org/kpft/kpft.m3u`
+  - HD2: `https://docs.pacifica.org/kpft/kpft_hd2.m3u`
+  - HD3: `https://docs.pacifica.org/kpft/kpft_hd3.m3u`
+
+- **Fallback Direct Streams (for resilience)**:
+  - HD1: `https://streams.pacifica.org:9000/live_64`
+  - HD2: `https://streams.pacifica.org:9000/HD3_128`
+  - HD3: `https://streams.pacifica.org:9000/classic_country`
 - **Audio Metadata**:
   - Album: `"Live on the air"`
   - Artist: `"Houston's Community Station"`

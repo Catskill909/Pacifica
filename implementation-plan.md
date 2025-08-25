@@ -35,17 +35,17 @@ final tabConfig = [
   TabItem(
     label: "HD1",
     webViewUrl: "https://starkey.digital/app/",
-    audioStream: "https://streams.pacifica.org:9000/live_64",
+    audioStream: "https://docs.pacifica.org/kpft/kpft.m3u", // resolved at runtime
   ),
   TabItem(
     label: "HD2",
     webViewUrl: "https://starkey.digital/app2/",
-    audioStream: "https://streams.pacifica.org:9000/HD3_128",
+    audioStream: "https://docs.pacifica.org/kpft/kpft_hd2.m3u", // resolved at runtime
   ),
   TabItem(
     label: "HD3",
     webViewUrl: "https://starkey.digital/app3/",
-    audioStream: "https://streams.pacifica.org:9000/classic_country",
+    audioStream: "https://docs.pacifica.org/kpft/kpft_hd3.m3u", // resolved at runtime
   ),
   TabItem(
     label: "DONATE",

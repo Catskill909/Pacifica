@@ -11,6 +11,8 @@ Scope: Audio stack only (no UI changes, no code diffs). Findings reference curre
 - Icecast best practices (ICY metadata capture, reconnect/backoff strategy, stream-specific headers) are not implemented yet.
 - Dependencies include desktop backends (`just_audio_mpv`, `just_audio_windows`) that may be unnecessary for mobile release builds.
 
+- Playlist-based streaming is now implemented: `.m3u` playlists for HD1/HD2/HD3 are resolved at runtime with URL sanitization (duplicate scheme fix), validation, caching per `id|playlistUrl`, and fallback to direct streams.
+
 Bottom line: With a few targeted improvements (audio session config, focus/ducking, metadata, reconnection, minor Android/iOS hygiene), we can reach a robust, modern radio experience.
 
 ---

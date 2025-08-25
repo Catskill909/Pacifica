@@ -32,13 +32,13 @@
    - `Future<String> _resolvePlaylistUrl(String url)`
      - If `url` ends with `.m3u` (case-insensitive):
        - Fetch with Dio (short timeouts, e.g., 3s connect/3s receive).
-       - Parse text with `M3uParser().parse(playlistText)`.
+       - Parse text with `M3uParser.parse(playlistText)`.
        - Pick the first valid entry URL (prefer https). Resolve relative URLs against playlist base URL if necessary.
        - Return the resolved direct URL.
      - Else return `url` unchanged.
      - On any error, log and return the original `url` as fallback (do not break playback).
-   - Add a small in-memory cache: `Map<String, String> _resolvedCacheById` keyed by `HD1/HD2/HD3`.
-     - Cache the resolved result to avoid re-fetch on every play/switch. Invalidate only on app restart or manually if needed.
+   - Add a small in-memory cache: `Map<String, String> _resolvedCache` keyed by `id|playlistUrl`.
+     - This ensures changes to playlist URLs bypass stale cache entries. Cache clears on app restart.
 
 3. Wire resolver into playback
    - In `prepareCurrent()`, `play()`, and `setMediaItem()`:
@@ -76,3 +76,23 @@
 2. Implement `_resolvePlaylistUrl` + caching in `AudioPlayerHandler`.
 3. Update `streamUrls` to playlist URLs.
 4. Manual tests on both platforms.
+
+## Implementation notes (as built)
+- Resolver implemented in `lib/main.dart` → `AudioPlayerHandler._resolvePlaylistUrl()` using `dio` + `m3u_nullsafe`.
+- Cache key is `id|playlistUrl` to avoid collisions and stale resolutions.
+- Relative links are resolved against the playlist base URL.
+- Fallback to known-good direct streams if fetch/parse/validation fails.
+
+### Hardening
+- Sanitize duplicated schemes (e.g., `https://https://...`) by collapsing to a single scheme.
+- Validate final URL: must be `http/https` and have a non-empty host.
+- On any exception, fall back to direct URLs to preserve playback.
+
+### Troubleshooting
+- If playlist contents change but are served at the same URL, fully quit and relaunch the app to refresh the cache.
+- Ensure playlist lines are valid media URLs or resolvable relative paths.
+
+### Verification checklist
+- Switch HD1/HD2/HD3 and confirm playback starts quickly.
+- Background playback continues after minimizing/locking.
+- Donate tab still opens in external browser.

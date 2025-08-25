@@ -21,6 +21,23 @@ This approach ensures that future development can efficiently leverage AI assist
 - Media controls integration with system notifications
 - Automatic stream recovery on connection issues
 
+#### Playlist-based Streaming (.m3u)
+- Streams for HD1/HD2/HD3 now point to .m3u playlists and are resolved to direct URLs at runtime.
+- Resolver lives in `lib/main.dart` → `AudioPlayerHandler._resolvePlaylistUrl()` and uses `dio` + `m3u_nullsafe`.
+- Resolved URLs are cached in-memory (keyed by `id|playlistUrl`) to avoid repeated fetches.
+- Robust fallbacks: if playlist fetch/parse fails, playback falls back to known-good direct streams.
+
+Configuration
+- Set playlist endpoints in `lib/main.dart` → `AudioPlayerHandler.streamUrls`:
+  - HD1: https://docs.pacifica.org/kpft/kpft.m3u
+  - HD2: https://docs.pacifica.org/kpft/kpft_hd2.m3u
+  - HD3: https://docs.pacifica.org/kpft/kpft_hd3.m3u
+
+Troubleshooting
+- Fully quit and relaunch the app to clear the in-memory resolution cache if playlists are updated.
+- Playlists must ultimately resolve to http/https media URLs. Relative links are supported.
+- Malformed links (e.g., duplicated schemes like `https://https://...`) are sanitized by the resolver.
+
 ### 2. News Integration
 - Real-time news updates from KPFT's WordPress site
 - Clean, readable article layout
@@ -83,6 +100,8 @@ This approach ensures that future development can efficiently leverage AI assist
 - `just_audio`: Audio playback engine
 - `webview_flutter`: Web content display
 - `http`: API communication
+- `dio`: HTTP client for playlist fetching
+- `m3u_nullsafe`: M3U playlist parser
 - `url_launcher`: External link handling
 - `cached_network_image`: Image caching and loading
 
