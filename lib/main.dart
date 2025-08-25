@@ -16,6 +16,8 @@ import 'sheet.dart'; // Import the RadioSheet widget
 import 'dart:developer';
 import 'dart:async';
 import 'ui/responsive.dart';
+import 'package:dio/dio.dart';
+import 'package:m3u_nullsafe/m3u_nullsafe.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,8 +108,22 @@ class _SplashScreenState extends State<SplashScreen> {
 class AudioPlayerHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
   late MediaItem _mediaItem;
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 3),
+    receiveTimeout: const Duration(seconds: 3),
+    sendTimeout: const Duration(seconds: 3),
+    responseType: ResponseType.plain,
+  ));
+  final Map<String, String> _resolvedCache = {}; // cache key: "id|playlistUrl" -> direct URL
 
   static const Map<String, String> streamUrls = {
+    'HD1': 'https://docs.pacifica.org/kpft/kpft.m3u',
+    'HD2': 'https://docs.pacifica.org/kpft/kpft_hd2.m3u',
+    'HD3': 'https://docs.pacifica.org/kpft/kpft_hd3.m3u',
+  };
+
+  // Fallback direct streams to avoid regression if playlist resolution fails
+  static const Map<String, String> _fallbackDirectById = {
     'HD1': 'https://streams.pacifica.org:9000/live_64',
     'HD2': 'https://streams.pacifica.org:9000/HD3_128',
     'HD3': 'https://streams.pacifica.org:9000/classic_country',
@@ -118,6 +134,59 @@ class AudioPlayerHandler extends BaseAudioHandler {
   AudioPlayerHandler() {
     _eventSubscription = _player.playbackEventStream.listen(_broadcastState);
     _setInitialMediaItem();
+  }
+
+  Future<String> _resolvePlaylistUrl(String id, String url) async {
+    // Include URL in cache key so updated playlists bypass stale cache
+    final cacheKey = '$id|$url';
+    final cached = _resolvedCache[cacheKey];
+    if (cached != null && cached.isNotEmpty) return cached;
+
+    final lower = url.toLowerCase();
+    if (!lower.endsWith('.m3u')) return url; // not a playlist, return as-is
+
+    try {
+      final res = await _dio.get<String>(url);
+      final text = res.data ?? '';
+      if (text.isEmpty) return url;
+
+      final entries = await M3uParser.parse(text);
+      if (entries.isEmpty) {
+        return _fallbackDirectById[id] ?? url;
+      }
+
+      final base = Uri.parse(url);
+      for (final e in entries) {
+        // Original link string from playlist
+        var link = e.link.trim();
+        if (link.isEmpty) continue;
+
+        // Sanitize duplicated URL schemes like https://https://...
+        final dupScheme = RegExp(r'^(https?:\/\/)(https?:\/\/)+', caseSensitive: false);
+        if (dupScheme.hasMatch(link)) {
+          link = link.replaceAllMapped(dupScheme, (m) => m.group(1)!);
+        }
+
+        if (link.isEmpty) continue;
+        Uri resolved;
+        try {
+          resolved = base.resolve(link);
+        } catch (_) {
+          continue;
+        }
+        final schemeOk = resolved.scheme == 'https' || resolved.scheme == 'http';
+        final hostOk = resolved.hasAuthority && (resolved.host.isNotEmpty);
+        if (!schemeOk || !hostOk) continue;
+
+        final value = resolved.toString();
+        _resolvedCache[cacheKey] = value;
+        return value;
+      }
+      return _fallbackDirectById[id] ?? url;
+    } catch (_) {
+      // On any failure, fall back to original URL to avoid breaking playback
+      return _fallbackDirectById[id] ?? url;
+    }
   }
 
   Future<void> dispose() async {
@@ -164,9 +233,10 @@ class AudioPlayerHandler extends BaseAudioHandler {
   Future<void> play() async {
     if (_player.processingState == ProcessingState.idle ||
         _player.processingState == ProcessingState.completed) {
-      final streamUrl = streamUrls[_mediaItem.id];
-      if (streamUrl != null) {
-        await _player.setUrl(streamUrl);
+      final playlistUrl = streamUrls[_mediaItem.id];
+      if (playlistUrl != null) {
+        final resolved = await _resolvePlaylistUrl(_mediaItem.id, playlistUrl);
+        await _player.setUrl(resolved);
       }
     }
     await _player.play();
@@ -191,10 +261,11 @@ class AudioPlayerHandler extends BaseAudioHandler {
 
   // Prepare current stream without starting playback, so a single Play tap works
   Future<void> prepareCurrent() async {
-    final streamUrl = streamUrls[_mediaItem.id];
-    if (streamUrl != null) {
+    final playlistUrl = streamUrls[_mediaItem.id];
+    if (playlistUrl != null) {
       try {
-        await _player.setUrl(streamUrl);
+        final resolved = await _resolvePlaylistUrl(_mediaItem.id, playlistUrl);
+        await _player.setUrl(resolved);
         _broadcastState(_player.playbackEvent);
       } catch (_) {
         // ignore prepare errors; user can retry
@@ -203,10 +274,11 @@ class AudioPlayerHandler extends BaseAudioHandler {
   }
 
   Future<void> setMediaItem(MediaItem mediaItem) async {
-    final streamUrl = streamUrls[mediaItem.id];
-    if (streamUrl != null) {
+    final playlistUrl = streamUrls[mediaItem.id];
+    if (playlistUrl != null) {
       await _player.stop();
-      await _player.setUrl(streamUrl);
+      final resolved = await _resolvePlaylistUrl(mediaItem.id, playlistUrl);
+      await _player.setUrl(resolved);
       _mediaItem = mediaItem.copyWith(duration: const Duration(hours: 24));
       _broadcastState(_player.playbackEvent);
       if (_player.playing) {
@@ -282,9 +354,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String _currentWebViewUrl = 'https://starkey.digital/app/';
 
   static const Map<String, String> webViewUrls = {
-    'HD1': 'https://starkey.digital/app/',
-    'HD2': 'https://starkey.digital/app2/',
-    'HD3': 'https://starkey.digital/app3/',
+    'HD1': 'https://docs.pacifica.org/kpft/hd1/',
+    'HD2': 'https://docs.pacifica.org/kpft/hd2/',
+    'HD3': 'https://docs.pacifica.org/kpft/hd3/',
   };
 
 
