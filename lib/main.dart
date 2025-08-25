@@ -457,6 +457,8 @@ class AudioControls extends StatelessWidget {
             final playing = state?.playing ?? false;
             final proc = state?.processingState ?? AudioProcessingState.idle;
             final isLoading = proc == AudioProcessingState.loading || proc == AudioProcessingState.buffering;
+            final mq = MediaQuery.of(context);
+            final double vpad = ResponsiveScale.isSmallPhone(mq) ? 4.0 : 0.0;
 
             return AbsorbPointer(
               absorbing: isLoading,
@@ -477,8 +479,8 @@ class AudioControls extends StatelessWidget {
                   playing ? handler.pause() : handler.play();
                 },
                 child: Container(
-                  width: ResponsiveScale.s(context, 90.0),
-                  height: ResponsiveScale.s(context, 90.0),
+                  width: ResponsiveScale.sSmallAware(context, 90.0, factor: 0.85),
+                  height: ResponsiveScale.sSmallAware(context, 90.0, factor: 0.85),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.black,
@@ -494,10 +496,15 @@ class AudioControls extends StatelessWidget {
                             ),
                           ),
                         )
-                      : Icon(
-                          playing ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
-                          size: ResponsiveScale.s(context, 70.0),
+                      : Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: vpad),
+                            child: Icon(
+                              playing ? Icons.pause : Icons.play_arrow,
+                              color: Colors.white,
+                              size: ResponsiveScale.sSmallAware(context, 70.0, factor: 0.80),
+                            ),
+                          ),
                         ),
                 ),
               ),
@@ -545,7 +552,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
     return IconButton(
       icon: const Icon(Icons.feed, color: Colors.white),
       onPressed: onInfoPressed,
-      iconSize: ResponsiveScale.sFromMq(mediaQuery, 40),
+      iconSize: ResponsiveScale.sFromMqSmallAware(mediaQuery, 40, factor: 0.80),
       padding: EdgeInsets.zero,
     );
   }
@@ -553,8 +560,8 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _buildLogoImage() {
     return CachedNetworkImage(
       imageUrl: "https://kpft.org/wp-content/uploads/2022/01/kpft.png",
-      width: ResponsiveScale.sFromMq(mediaQuery, 70),
-      height: ResponsiveScale.sFromMq(mediaQuery, 70),
+      width: ResponsiveScale.sFromMqSmallAware(mediaQuery, 70, factor: 0.80),
+      height: ResponsiveScale.sFromMqSmallAware(mediaQuery, 70, factor: 0.80),
       fit: BoxFit.contain,
     );
   }
@@ -566,7 +573,7 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
       onPressed: () {
         _showBottomSheet(context);
       },
-      iconSize: ResponsiveScale.sFromMq(mediaQuery, 40),
+      iconSize: ResponsiveScale.sFromMqSmallAware(mediaQuery, 40, factor: 0.80),
       padding: EdgeInsets.zero,
     );
   }

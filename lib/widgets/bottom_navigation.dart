@@ -37,14 +37,14 @@ class StreamBottomNavigation extends StatelessWidget {
         backgroundColor: Colors.black,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey[400],
-        selectedFontSize: ResponsiveScale.s(context, 16),
-        unselectedFontSize: ResponsiveScale.s(context, 16),
+        selectedFontSize: ResponsiveScale.sSmallAware(context, 16, factor: 0.80),
+        unselectedFontSize: ResponsiveScale.sSmallAware(context, 16, factor: 0.80),
         showUnselectedLabels: true,
         enableFeedback: true,
         landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900),
-        iconSize: ResponsiveScale.s(context, 32),
+        iconSize: ResponsiveScale.sSmallAware(context, 32, factor: 0.80),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.radio),
