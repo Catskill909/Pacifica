@@ -14,10 +14,10 @@ class OfflineOverlay extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF161616),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
+            decoration: const BoxDecoration(
+              color: Color(0xFF161616),
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+              boxShadow: [
                 BoxShadow(
                   color: Color(0x99000000),
                   blurRadius: 12,
@@ -27,19 +27,19 @@ class OfflineOverlay extends StatelessWidget {
             ),
             child: DefaultTextStyle.merge(
               style: const TextStyle(decoration: TextDecoration.none, decorationColor: Colors.transparent),
-              child: Column(
+              child: const Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(Icons.wifi_off, color: Colors.white, size: 48),
-                  const SizedBox(height: 16),
-                  const Text(
+                  Icon(Icons.wifi_off, color: Colors.white, size: 48),
+                  SizedBox(height: 16),
+                  Text(
                     "You're Offline",
                     style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700, decoration: TextDecoration.none),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     'The radio needs internet to play. This alert closes automatically once the internet is restored.',
                     style: TextStyle(color: Colors.white70, fontSize: 14, decoration: TextDecoration.none, decorationColor: Colors.transparent),
                     textAlign: TextAlign.center,
