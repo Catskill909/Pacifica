@@ -10,7 +10,7 @@ import 'presentation/bloc/connectivity_cubit.dart';
 import 'presentation/widgets/offline_overlay.dart';
 import 'presentation/widgets/offline_modal.dart';
 import 'widgets/bottom_navigation.dart';
-import 'webview.dart';
+import 'presentation/widgets/webview_container.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
 import 'sheet.dart'; // Import the RadioSheet widget
 import 'dart:developer';
@@ -424,7 +424,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Flexible(
                 flex: 8,
-                child: CustomWebView(url: _currentWebViewUrl),
+                child: WebViewContainer(url: _currentWebViewUrl),
               ),
               Flexible(
                 flex: 2,
