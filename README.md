@@ -58,6 +58,11 @@ Troubleshooting
 
 ## In-Progress Development
 
+### Build Incident & Next Steps (Android)
+- See `android-build-incident-2025-08-27.md` for the full timeline, errors, root-cause hypothesis, and the recovery plan.
+- Goal: Keep a single source of truth on `main`. All build incident updates will be documented in that file and referenced here.
+- Status: Baseline is stable after reset; remediation is documented and pending scheduling.
+
 ### Package Updates Needed
 - Several packages have newer versions available that need to be evaluated and updated:
   - 59 packages have newer versions available
