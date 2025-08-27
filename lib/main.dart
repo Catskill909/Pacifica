@@ -291,6 +291,10 @@ class AudioPlayerHandler extends BaseAudioHandler {
 class MyApp extends StatelessWidget {
   final AudioPlayerHandler handler;
 
+  // One-time home-route connectivity verification to suppress any brief overlay flash
+  static bool _didHomeConnectivityCheck = false;
+  // (Removed) Android-specific debounce timestamps; relying on state guards instead.
+
   const MyApp({super.key, required this.handler});
 
   @override
@@ -317,6 +321,8 @@ class MyApp extends StatelessWidget {
         },
         builder: (context, child) {
           final connState = context.watch<ConnectivityCubit>().state;
+          // Kick a verification check on first frame after app launches to ensure
+          // we have a definitive online/offline status before showing any overlay.
           if (connState.firstRun) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.mounted) context.read<ConnectivityCubit>().checkNow();
@@ -326,6 +332,14 @@ class MyApp extends StatelessWidget {
           final isSplash = child is SplashScreen;
           if (isSplash) {
             return child;
+          }
+          // Once we enter home the first time, force a connectivity re-check and
+          // rely on `checking` to prevent overlay until the result returns.
+          if (!_didHomeConnectivityCheck) {
+            _didHomeConnectivityCheck = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) context.read<ConnectivityCubit>().checkNow();
+            });
           }
           return Stack(
             fit: StackFit.expand,
