@@ -44,6 +44,7 @@ class ConnectivityState extends Equatable {
 class ConnectivityCubit extends Cubit<ConnectivityState> {
   final ConnectivityService _service;
   StreamSubscription<bool>? _sub;
+  Timer? _startupGraceTimer;
 
   ConnectivityCubit({required ConnectivityService service})
       : _service = service,
@@ -51,11 +52,20 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
 
   void initialize() {
     _sub?.cancel();
+    
+    // Start 5-second grace period to prevent startup modal false positives
+    _startupGraceTimer = Timer(const Duration(seconds: 5), () {
+      if (!isClosed) {
+        emit(state.copyWith(firstRun: false));
+      }
+    });
+    
     _sub = _service.connectivityStream().listen((isOnline) {
+      final isInGracePeriod = _startupGraceTimer?.isActive ?? false;
       emit(state.copyWith(
         isOnline: isOnline,
         checking: false,
-        firstRun: false,
+        firstRun: isInGracePeriod,
         dismissed: false,
       ));
     });
@@ -82,6 +92,7 @@ class ConnectivityCubit extends Cubit<ConnectivityState> {
 
   @override
   Future<void> close() async {
+    _startupGraceTimer?.cancel();
     await _sub?.cancel();
     return super.close();
   }

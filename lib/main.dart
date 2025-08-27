@@ -419,7 +419,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return BlocListener<ConnectivityCubit, ConnectivityState>(
-      listenWhen: (prev, curr) => prev.isOnline != curr.isOnline,
+      listenWhen: (prev, curr) => 
+        prev.isOnline != curr.isOnline && 
+        !curr.firstRun && // Only after startup grace period
+        !curr.dismissed, // Respect user dismissal
       listener: (context, state) async {
         if (!state.isOnline) {
           // Hard reset audio when network is lost so UI shows Play and player is idle
@@ -496,9 +499,9 @@ class AudioControls extends StatelessWidget {
               child: GestureDetector(
                 onTap: () async {
                   if (!playing) {
-                    final isOnline =
-                        context.read<ConnectivityCubit>().state.isOnline;
-                    if (!isOnline) {
+                    final connectivityState = context.read<ConnectivityCubit>().state;
+                    // Only show modal if offline AND not in startup grace period
+                    if (!connectivityState.isOnline && !connectivityState.firstRun) {
                       showGeneralDialog(
                         context: context,
                         barrierColor: Colors.black54,
