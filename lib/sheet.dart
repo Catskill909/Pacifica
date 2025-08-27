@@ -96,6 +96,7 @@ class RadioSheet extends StatelessWidget {
     final double topPadding = MediaQuery.of(context).padding.top;
     final mq = MediaQuery.of(context);
     final isTablet = mq.size.shortestSide >= 600;
+    final isSmallPhone = ResponsiveScale.isSmallPhone(mq);
     final gridCols = isTablet ? 3 : 2;
     final aspect = isTablet ? 2.6 : 3.0;
 
@@ -113,7 +114,7 @@ class RadioSheet extends StatelessWidget {
                   alignment: Alignment.topCenter,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 10.0),
-                    child: Image.asset('assets/kpft.png', width: ResponsiveScale.s(context, 80)),
+                    child: Image.asset('assets/kpft.png', width: ResponsiveScale.sSmallAware(context, 80)),
                   ),
                 ),
                 // Close icon aligned to the top right
@@ -135,7 +136,7 @@ class RadioSheet extends StatelessWidget {
               Image.network(
                 content[0].topImage,
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width * 0.4,
+                height: MediaQuery.of(context).size.width * (isSmallPhone ? 0.33 : 0.4),
                 fit: BoxFit.cover,
               ),
             const SizedBox(
@@ -148,8 +149,8 @@ class RadioSheet extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: gridCols,
-                  crossAxisSpacing: 24.0,
-                  mainAxisSpacing: 18.0,
+                  crossAxisSpacing: ResponsiveScale.sSmallAware(context, 24.0),
+                  mainAxisSpacing: ResponsiveScale.sSmallAware(context, 18.0),
                   childAspectRatio: aspect,
                 ),
                 itemCount: content.length,
@@ -161,10 +162,10 @@ class RadioSheet extends StatelessWidget {
                           int.parse('0xff${item.color.replaceFirst('#', '')}')),
                       backgroundColor: Color(int.parse(
                           '0xff${item.color2.replaceFirst('#', '')}')),
-                      padding: EdgeInsets.all(ResponsiveScale.s(context, 6.0)),
+                      padding: EdgeInsets.all(ResponsiveScale.sSmallAware(context, 6.0)),
                       minimumSize: Size(
-                        ResponsiveScale.s(context, 50),
-                        ResponsiveScale.s(context, 20),
+                        ResponsiveScale.sSmallAware(context, 50),
+                        ResponsiveScale.sSmallAware(context, 20),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
@@ -173,7 +174,7 @@ class RadioSheet extends StatelessWidget {
                     child: Text(
                       item.name,
                       style: TextStyle(
-                        fontSize: ResponsiveScale.s(context, 26),
+                        fontSize: ResponsiveScale.sSmallAware(context, 26),
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Oswald',
                       ),

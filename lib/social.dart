@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'ui/responsive.dart';
 
 // Define the SocialIcons widget
 class SocialIcons extends StatelessWidget {
@@ -13,18 +14,22 @@ class SocialIcons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Compute responsive diameter so 5 icons fit on any phone.
-    final double screenWidth = MediaQuery.of(context).size.width;
+    final mq = MediaQuery.of(context);
+    final double screenWidth = mq.size.width;
+    final bool isSmall = ResponsiveScale.isSmallPhone(mq);
     const int count = 5;
     const double gap = 10.0; // slightly tighter gap between icons
     final double available = screenWidth - 32; // approximate content width
-    // Choose diameter so that (count * d) + (gaps) fits available width. Cap growth on very wide screens.
-    final double diameter = math.min(52.0, (available - gap * (count - 1)) / count);
+    // Choose diameter so that (count * d) + (gaps) fits available width.
+    // Cap growth on very wide screens, and cap smaller on small phones only.
+    final double baseDiameter = (available - gap * (count - 1)) / count;
+    final double diameter = math.min(isSmall ? 40.0 : 52.0, baseDiameter);
     final double iconSize = diameter * 0.65; // visual balance inside circle
     final double radius = diameter / 2;
 
     // Return a Row widget containing a list of SocialIcon widgets
     return Padding(
-      padding: const EdgeInsets.only(top: 0.0, bottom: 0.0),
+      padding: EdgeInsets.only(top: isSmall ? 6.0 : 0.0, bottom: isSmall ? 6.0 : 0.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
