@@ -331,7 +331,8 @@ class MyApp extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               child ?? const SizedBox.shrink(),
-              if (!connState.isOnline && !connState.dismissed) const OfflineOverlay(),
+              if (!connState.isOnline && !connState.firstRun && !connState.checking && !connState.dismissed)
+                const OfflineOverlay(),
             ],
           );
         },

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/connectivity_cubit.dart';
+// No Bloc imports needed; overlay is passive and auto-hides when connectivity returns.
 
 class OfflineOverlay extends StatelessWidget {
   const OfflineOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final checking = context.select<ConnectivityCubit, bool>((c) => c.state.checking);
-
     return AbsorbPointer(
       absorbing: true,
       child: Container(
@@ -43,41 +40,10 @@ class OfflineOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'The radio needs internet to play. Please reconnect and try again.',
+                    'The radio needs internet to play. This alert closes automatically once the internet is restored.',
                     style: TextStyle(color: Colors.white70, fontSize: 14, decoration: TextDecoration.none, decorationColor: Colors.transparent),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: checking
-                              ? null
-                              : () async {
-                                  await context.read<ConnectivityCubit>().checkNow();
-                                },
-                          child: checking
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Text('Retry', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600, decoration: TextDecoration.none)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: () {
-                            context.read<ConnectivityCubit>().dismissUntilChange();
-                          },
-                          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF2A2A2A)),
-                          child: const Text('Dismiss', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600, decoration: TextDecoration.none)),
-                        ),
-                      ),
-                    ],
-                  )
                 ],
               ),
             ),
