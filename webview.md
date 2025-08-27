@@ -128,6 +128,25 @@ Stay with webview_flutter and enhance the NavigationDelegate because:
 
 This approach gives you the most control while solving the immediate issue, and you can always switch to webview_flutter_plus later if needed.
 
+## WebView Offline Overlay and Container (Implemented)
+
+To ensure a clean UX when the device is offline, the app now uses a wrapper that hides the platform WebView and shows a branded offline overlay, then automatically reloads when connectivity returns.
+
+- Files:
+  - `lib/presentation/widgets/webview_container.dart`
+  - `lib/presentation/widgets/webview_scrim.dart`
+- Behavior:
+  - When offline, `WebViewContainer` does not render `CustomWebView`; it shows a black background and `WebViewScrim` to fully hide error pages.
+  - When connectivity is restored, the WebView is reloaded with a short debounce (~1s) by rebuilding with a fresh `UniqueKey`.
+  - First-run suppression avoids any overlay flash during initial connectivity probing.
+- Integration:
+  - `WebViewContainer` replaces direct `CustomWebView` usage only in the WebView area inside `lib/main.dart`.
+  - Connectivity state comes from `ConnectivityCubit` (`lib/presentation/bloc/connectivity_cubit.dart`).
+- Rationale:
+  - Cleanly prevents default WebView error pages.
+  - Preserves all existing UI and Donate tab external browser behavior.
+
+
 ---
 
 

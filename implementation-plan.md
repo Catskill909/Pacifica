@@ -137,6 +137,21 @@ class TabStateController {
 - Efficient stream switching
 - Minimal memory footprint
 
+### 5.4 Offline Connectivity UX (Implemented)
+
+- Wrapper: `lib/presentation/widgets/webview_container.dart`
+- Overlay: `lib/presentation/widgets/webview_scrim.dart`
+- State: `lib/presentation/bloc/connectivity_cubit.dart`
+
+Behavior:
+- When offline, `WebViewContainer` does not render `CustomWebView` to prevent default error pages from appearing. Instead, it shows a solid black background with a branded `WebViewScrim` overlay.
+- On reconnect, the WebView is reloaded after a short debounce (~1s) by rebuilding with a new `UniqueKey`, avoiding flicker and premature reloads.
+- First-run suppression ensures no overlay flash during initial connectivity probing.
+
+Non-goals / Preservation:
+- Existing UI layout is unchanged (play/pause button and top section preserved).
+- Donate tab continues to open in the external browser as before.
+
 ## 6. Future Enhancements
 
 - Stream quality selection

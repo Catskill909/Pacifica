@@ -49,6 +49,9 @@ Troubleshooting
 - Responsive layout adaptation
 - Loading indicators for better user experience
 - Error handling with automatic reload capability
+- Offline overlay that hides error pages when offline
+- Auto-reload on reconnect with a gentle debounce (~1s)
+- Implemented via `lib/presentation/widgets/webview_container.dart` + `lib/presentation/widgets/webview_scrim.dart` using `ConnectivityCubit`
 
 ### 4. Interactive Bottom Sheet
 - Quick access to additional station features
@@ -94,6 +97,8 @@ Troubleshooting
 
 - `main.dart`: Main application entry point and audio service initialization
 - `webview.dart`: Custom WebView implementation with error handling
+- `presentation/widgets/webview_container.dart`: Wrapper around `CustomWebView` that shows an offline scrim and reloads the WebView on reconnect
+- `presentation/widgets/webview_scrim.dart`: Visually styled overlay shown above the WebView area when offline
 - `wordpres.dart`: WordPress integration for news content
 - `sheet.dart`: Bottom sheet UI and functionality
 - `social.dart`: Social media integration
