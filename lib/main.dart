@@ -10,7 +10,7 @@ import 'presentation/bloc/connectivity_cubit.dart';
 import 'presentation/widgets/offline_overlay.dart';
 import 'presentation/widgets/offline_modal.dart';
 import 'widgets/bottom_navigation.dart';
-import 'presentation/widgets/webview_container.dart';
+import 'webview.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
 import 'sheet.dart'; // Import the RadioSheet widget
 import 'dart:developer';
@@ -30,8 +30,8 @@ void main() async {
   final handler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
     config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.example.myapp.channel.audio',
-      androidNotificationChannelName: 'Audio playback',
+      androidNotificationChannelId: 'com.pacifica.app.pacifica2.audio',
+      androidNotificationChannelName: 'KPFT Audio',
       androidNotificationOngoing: true,
     ),
   );
@@ -114,7 +114,8 @@ class AudioPlayerHandler extends BaseAudioHandler {
     sendTimeout: const Duration(seconds: 3),
     responseType: ResponseType.plain,
   ));
-  final Map<String, String> _resolvedCache = {}; // cache key: "id|playlistUrl" -> direct URL
+  final Map<String, String> _resolvedCache =
+      {}; // cache key: "id|playlistUrl" -> direct URL
 
   static const Map<String, String> streamUrls = {
     'HD1': 'https://docs.pacifica.org/kpft/kpft.m3u',
@@ -162,7 +163,8 @@ class AudioPlayerHandler extends BaseAudioHandler {
         if (link.isEmpty) continue;
 
         // Sanitize duplicated URL schemes like https://https://...
-        final dupScheme = RegExp(r'^(https?:\/\/)(https?:\/\/)+', caseSensitive: false);
+        final dupScheme =
+            RegExp(r'^(https?:\/\/)(https?:\/\/)+', caseSensitive: false);
         if (dupScheme.hasMatch(link)) {
           link = link.replaceAllMapped(dupScheme, (m) => m.group(1)!);
         }
@@ -174,7 +176,8 @@ class AudioPlayerHandler extends BaseAudioHandler {
         } catch (_) {
           continue;
         }
-        final schemeOk = resolved.scheme == 'https' || resolved.scheme == 'http';
+        final schemeOk =
+            resolved.scheme == 'https' || resolved.scheme == 'http';
         final hostOk = resolved.hasAuthority && (resolved.host.isNotEmpty);
         if (!schemeOk || !hostOk) continue;
 
@@ -302,7 +305,8 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => ConnectivityCubit(service: ConnectivityService())..initialize(),
+          create: (_) =>
+              ConnectivityCubit(service: ConnectivityService())..initialize(),
         ),
       ],
       child: MaterialApp(
@@ -345,7 +349,10 @@ class MyApp extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               child ?? const SizedBox.shrink(),
-              if (!connState.isOnline && !connState.firstRun && !connState.checking && !connState.dismissed)
+              if (!connState.isOnline &&
+                  !connState.firstRun &&
+                  !connState.checking &&
+                  !connState.dismissed)
                 const OfflineOverlay(),
             ],
           );
@@ -373,7 +380,6 @@ class _MyHomePageState extends State<MyHomePage> {
     'HD2': 'https://docs.pacifica.org/kpft/hd2/',
     'HD3': 'https://docs.pacifica.org/kpft/hd3/',
   };
-
 
   void _showWordpressSheet(BuildContext context) {
     showModalBottomSheet(
@@ -424,7 +430,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Flexible(
                 flex: 8,
-                child: WebViewContainer(url: _currentWebViewUrl),
+                child: CustomWebView(url: _currentWebViewUrl),
               ),
               Flexible(
                 flex: 2,
@@ -471,7 +477,8 @@ class AudioControls extends StatelessWidget {
             final state = snapshot.data;
             final playing = state?.playing ?? false;
             final proc = state?.processingState ?? AudioProcessingState.idle;
-            final isLoading = proc == AudioProcessingState.loading || proc == AudioProcessingState.buffering;
+            final isLoading = proc == AudioProcessingState.loading ||
+                proc == AudioProcessingState.buffering;
             final mq = MediaQuery.of(context);
             final double vpad = ResponsiveScale.isSmallPhone(mq) ? 4.0 : 0.0;
 
@@ -480,7 +487,8 @@ class AudioControls extends StatelessWidget {
               child: GestureDetector(
                 onTap: () async {
                   if (!playing) {
-                    final isOnline = context.read<ConnectivityCubit>().state.isOnline;
+                    final isOnline =
+                        context.read<ConnectivityCubit>().state.isOnline;
                     if (!isOnline) {
                       showGeneralDialog(
                         context: context,
@@ -494,8 +502,10 @@ class AudioControls extends StatelessWidget {
                   playing ? handler.pause() : handler.play();
                 },
                 child: Container(
-                  width: ResponsiveScale.sSmallAware(context, 90.0, factor: 0.85),
-                  height: ResponsiveScale.sSmallAware(context, 90.0, factor: 0.85),
+                  width:
+                      ResponsiveScale.sSmallAware(context, 90.0, factor: 0.85),
+                  height:
+                      ResponsiveScale.sSmallAware(context, 90.0, factor: 0.85),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.black,
@@ -517,7 +527,8 @@ class AudioControls extends StatelessWidget {
                             child: Icon(
                               playing ? Icons.pause : Icons.play_arrow,
                               color: Colors.white,
-                              size: ResponsiveScale.sSmallAware(context, 70.0, factor: 0.80),
+                              size: ResponsiveScale.sSmallAware(context, 70.0,
+                                  factor: 0.80),
                             ),
                           ),
                         ),
@@ -620,5 +631,6 @@ class CustomNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize =>
-      Size.fromHeight(ResponsiveScale.sFromMq(mediaQuery, kToolbarHeight) + mediaQuery.padding.top);
+      Size.fromHeight(ResponsiveScale.sFromMq(mediaQuery, kToolbarHeight) +
+          mediaQuery.padding.top);
 }

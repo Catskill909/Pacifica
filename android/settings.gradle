@@ -17,4 +17,5 @@ pluginManagement {
 
 include ":app"
 
+// Restore legacy apply script for Flutter Gradle integration on older SDKs
 apply from: "${settings.ext.flutterSdkPath}/packages/flutter_tools/gradle/app_plugin_loader.gradle"
