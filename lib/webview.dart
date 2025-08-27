@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'dart:developer'; // Import the developer library for logging
+import 'dart:developer';
 
 class CustomWebView extends StatefulWidget {
   final String url;
@@ -17,6 +18,17 @@ class CustomWebViewState extends State<CustomWebView>
   bool _isLoading = true;
   bool _errorOccurred = false;
 
+  // Public listenables to allow overlays/scrims to rebuild on state changes
+  final ValueNotifier<bool> _isLoadingNotifier = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _errorNotifier = ValueNotifier<bool>(false);
+
+  // Public getters/listenables for outside widgets
+  bool get isLoading => _isLoadingNotifier.value;
+  bool get hasError => _errorNotifier.value;
+  ValueListenable<bool> get isLoadingListenable => _isLoadingNotifier;
+  ValueListenable<bool> get errorListenable => _errorNotifier;
+  void reload() => _controller.reload();
+
   @override
   void initState() {
     super.initState();
@@ -28,16 +40,23 @@ class CustomWebViewState extends State<CustomWebView>
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            setState(() => _isLoading = true);
+            setState(() {
+              _isLoading = true;
+              _errorOccurred = false;
+            });
+            _isLoadingNotifier.value = true;
+            _errorNotifier.value = false;
             log('Loading page: $url');
           },
           onPageFinished: (String url) {
             setState(() => _isLoading = false);
+            _isLoadingNotifier.value = false;
             log('Finished loading page: $url');
           },
           onWebResourceError: (WebResourceError error) {
             log('Error loading page: ${error.description}');
-            _errorOccurred = true;
+            setState(() => _errorOccurred = true);
+            _errorNotifier.value = true;
           },
         ),
       )
@@ -58,6 +77,8 @@ class CustomWebViewState extends State<CustomWebView>
   void dispose() {
     log('WebView disposed');
     WidgetsBinding.instance.removeObserver(this);
+    _isLoadingNotifier.dispose();
+    _errorNotifier.dispose();
     super.dispose();
     log('dispose completed');
   }
@@ -77,7 +98,7 @@ class CustomWebViewState extends State<CustomWebView>
     return Stack(
       children: [
         Container(
-          color: const Color(0xFFB81717), // Set the background color
+          color: const Color(0xFFB81717),
           child: WebViewWidget(
             controller: _controller,
           ),
@@ -92,3 +113,4 @@ class CustomWebViewState extends State<CustomWebView>
     );
   }
 }
+

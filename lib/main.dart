@@ -10,7 +10,7 @@ import 'presentation/bloc/connectivity_cubit.dart';
 import 'presentation/widgets/offline_overlay.dart';
 import 'presentation/widgets/offline_modal.dart';
 import 'widgets/bottom_navigation.dart';
-import 'webview.dart';
+import 'presentation/widgets/webview_container.dart';
 import 'wordpres.dart'; // Ensure this import is correct for your wordpres.dart file
 import 'sheet.dart'; // Import the RadioSheet widget
 import 'dart:developer';
@@ -298,6 +298,10 @@ class MyApp extends StatelessWidget {
   static bool _didHomeConnectivityCheck = false;
   // (Removed) Android-specific debounce timestamps; relying on state guards instead.
 
+  // Startup grace window to avoid false offline overlay during initial load
+  static DateTime? _homeEnteredAt;
+  static const Duration _overlayGrace = Duration(seconds: 3);
+
   const MyApp({super.key, required this.handler});
 
   @override
@@ -341,10 +345,14 @@ class MyApp extends StatelessWidget {
           // rely on `checking` to prevent overlay until the result returns.
           if (!_didHomeConnectivityCheck) {
             _didHomeConnectivityCheck = true;
+            _homeEnteredAt = DateTime.now();
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.mounted) context.read<ConnectivityCubit>().checkNow();
             });
           }
+          // Suppress overlay during a brief startup grace period after entering home
+          final inGrace = _homeEnteredAt != null &&
+              DateTime.now().difference(_homeEnteredAt!) < _overlayGrace;
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -352,7 +360,8 @@ class MyApp extends StatelessWidget {
               if (!connState.isOnline &&
                   !connState.firstRun &&
                   !connState.checking &&
-                  !connState.dismissed)
+                  !connState.dismissed &&
+                  !inGrace)
                 const OfflineOverlay(),
             ],
           );
@@ -373,7 +382,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
-  String _currentWebViewUrl = 'https://starkey.digital/app/';
+  String _currentWebViewUrl = 'https://docs.pacifica.org/kpft/hd1/';
 
   static const Map<String, String> webViewUrls = {
     'HD1': 'https://docs.pacifica.org/kpft/hd1/',
@@ -430,7 +439,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Flexible(
                 flex: 8,
-                child: CustomWebView(url: _currentWebViewUrl),
+                child: WebViewContainer(url: _currentWebViewUrl),
               ),
               Flexible(
                 flex: 2,
