@@ -120,7 +120,6 @@ class AudioPlayerHandler extends BaseAudioHandler {
   
   // State tracking for better synchronization
   bool _isStreamSwitching = false;
-  bool _shouldResumeAfterSwitch = false;
 
   static const Map<String, String> streamUrls = {
     'HD1': 'https://docs.pacifica.org/kpft/kpft.m3u',
@@ -311,7 +310,6 @@ class AudioPlayerHandler extends BaseAudioHandler {
       // iOS: Simplified approach to maintain released functionality
       if (defaultTargetPlatform == TargetPlatform.android) {
         _isStreamSwitching = true;
-        _shouldResumeAfterSwitch = _player.playing; // Capture current state
       }
       
       await _player.stop();
@@ -319,14 +317,12 @@ class AudioPlayerHandler extends BaseAudioHandler {
       await _player.setUrl(resolved);
       _mediaItem = mediaItem.copyWith(duration: const Duration(hours: 24));
       
-      // Always broadcast stopped state first
+      // Always broadcast stopped state - user must manually tap play
       _broadcastState(_player.playbackEvent);
       
-      // Android-specific: Resume if was playing before switch
-      // iOS: Let user manually restart to maintain current behavior
-      if (defaultTargetPlatform == TargetPlatform.android && _shouldResumeAfterSwitch) {
-        await _player.play();
-      }
+      // REMOVED: Auto-resume functionality that was causing unwanted playback
+      // Tab switching should NEVER automatically start playback
+      // Users must explicitly tap play/pause buttons
       
       if (defaultTargetPlatform == TargetPlatform.android) {
         _isStreamSwitching = false;
