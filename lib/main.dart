@@ -28,23 +28,23 @@ void main() async {
     return true;
   }());
   log('App started');
-  final handler = await AudioService.init(
+  final AudioPlayerHandler handler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
     config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.pacifica.app.pacifica2.audio',
-      androidNotificationChannelName: 'KPFT Audio',
+      androidNotificationChannelId: 'com.example.myapp.channel.audio',
+      androidNotificationChannelName: 'Audio playback',
       androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
     ),
   );
 
   // Handle app lifecycle for cleanup
-  final binding = WidgetsBinding.instance;
-  binding.addObserver(AppLifecycleListener(
+  final _ = AppLifecycleListener(
     onDetach: () async {
       log('App detaching - cleaning up resources');
       await handler.dispose();
     },
-  ));
+  );
 
   runApp(MyApp(handler: handler));
 }
@@ -229,7 +229,8 @@ class AudioPlayerHandler extends BaseAudioHandler {
       speed: _player.speed,
       queueIndex: event.currentIndex,
     ));
-    mediaItem.add(_mediaItem);
+    // When idle, set media to null so Android dismisses lock screen controls.
+    mediaItem.add(processingState == AudioProcessingState.idle ? null : _mediaItem);
   }
 
   Future<void> _setInitialMediaItem() async {
@@ -260,12 +261,10 @@ class AudioPlayerHandler extends BaseAudioHandler {
 
   @override
   Future<void> pause() async {
-    // Android-specific: Implement same behavior as app UI - reset to initial state
-    // iOS keeps default pause behavior to maintain released functionality
+    // On Android, pausing from the lock screen should behave like stopping.
     if (defaultTargetPlatform == TargetPlatform.android) {
-      await resetToInitial();
+      await stop();
     } else {
-      // iOS: Standard pause behavior
       await _player.pause();
       _broadcastState(_player.playbackEvent);
     }
@@ -274,10 +273,11 @@ class AudioPlayerHandler extends BaseAudioHandler {
   @override
   Future<void> stop() async {
     await _player.stop();
-    _broadcastState(_player.playbackEvent);
+    await super.stop();
   }
   
-  // Reset audio to initial state (matches app UI behavior)
+  // This method is now redundant and can be removed, but we'll keep it for now
+  // to ensure no other part of the app breaks. The correct behavior is now in stop().
   Future<void> resetToInitial() async {
     await _player.stop();
     playbackState.add(playbackState.value.copyWith(
