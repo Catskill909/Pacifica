@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show debugPaintBaselinesEnabled;
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -116,6 +117,10 @@ class AudioPlayerHandler extends BaseAudioHandler {
   ));
   final Map<String, String> _resolvedCache =
       {}; // cache key: "id|playlistUrl" -> direct URL
+  
+  // State tracking for better synchronization
+  bool _isStreamSwitching = false;
+  bool _shouldResumeAfterSwitch = false;
 
   static const Map<String, String> streamUrls = {
     'HD1': 'https://docs.pacifica.org/kpft/kpft.m3u',
@@ -201,16 +206,24 @@ class AudioPlayerHandler extends BaseAudioHandler {
 
   void _broadcastState(PlaybackEvent event) {
     final playing = _player.playing;
+    final processingState = {
+      ProcessingState.idle: AudioProcessingState.idle,
+      ProcessingState.loading: AudioProcessingState.loading,
+      ProcessingState.buffering: AudioProcessingState.buffering,
+      ProcessingState.ready: AudioProcessingState.ready,
+      ProcessingState.completed: AudioProcessingState.completed,
+    }[_player.processingState]!;
+    
+    // Android-specific: During stream switching, show play button to avoid confusion
+    // iOS: Keep standard behavior to maintain released functionality
+    final controls = (defaultTargetPlatform == TargetPlatform.android && _isStreamSwitching)
+      ? [MediaControl.play]
+      : [if (playing) MediaControl.pause else MediaControl.play];
+    
     playbackState.add(playbackState.value.copyWith(
-      controls: [if (playing) MediaControl.pause else MediaControl.play],
+      controls: controls,
       androidCompactActionIndices: [0],
-      processingState: {
-        ProcessingState.idle: AudioProcessingState.idle,
-        ProcessingState.loading: AudioProcessingState.loading,
-        ProcessingState.buffering: AudioProcessingState.buffering,
-        ProcessingState.ready: AudioProcessingState.ready,
-        ProcessingState.completed: AudioProcessingState.completed,
-      }[_player.processingState]!,
+      processingState: processingState,
       playing: playing,
       updatePosition: _player.position,
       bufferedPosition: _player.bufferedPosition,
@@ -243,15 +256,30 @@ class AudioPlayerHandler extends BaseAudioHandler {
       }
     }
     await _player.play();
+    _broadcastState(_player.playbackEvent);
   }
 
   @override
   Future<void> pause() async {
-    await _player.pause();
+    // Android-specific: Implement same behavior as app UI - reset to initial state
+    // iOS keeps default pause behavior to maintain released functionality
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await resetToInitial();
+    } else {
+      // iOS: Standard pause behavior
+      await _player.pause();
+      _broadcastState(_player.playbackEvent);
+    }
   }
 
   @override
   Future<void> stop() async {
+    await _player.stop();
+    _broadcastState(_player.playbackEvent);
+  }
+  
+  // Reset audio to initial state (matches app UI behavior)
+  Future<void> resetToInitial() async {
     await _player.stop();
     playbackState.add(playbackState.value.copyWith(
       controls: [MediaControl.play],
@@ -279,13 +307,29 @@ class AudioPlayerHandler extends BaseAudioHandler {
   Future<void> setMediaItem(MediaItem mediaItem) async {
     final playlistUrl = streamUrls[mediaItem.id];
     if (playlistUrl != null) {
+      // Android-specific: Enhanced state management for notification sync
+      // iOS: Simplified approach to maintain released functionality
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        _isStreamSwitching = true;
+        _shouldResumeAfterSwitch = _player.playing; // Capture current state
+      }
+      
       await _player.stop();
       final resolved = await _resolvePlaylistUrl(mediaItem.id, playlistUrl);
       await _player.setUrl(resolved);
       _mediaItem = mediaItem.copyWith(duration: const Duration(hours: 24));
+      
+      // Always broadcast stopped state first
       _broadcastState(_player.playbackEvent);
-      if (_player.playing) {
+      
+      // Android-specific: Resume if was playing before switch
+      // iOS: Let user manually restart to maintain current behavior
+      if (defaultTargetPlatform == TargetPlatform.android && _shouldResumeAfterSwitch) {
         await _player.play();
+      }
+      
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        _isStreamSwitching = false;
       }
     }
   }
