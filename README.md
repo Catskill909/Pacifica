@@ -86,6 +86,26 @@ This approach ensures that future development can efficiently leverage AI assist
 - `url_launcher`: External link handling
 - `cached_network_image`: Image caching and loading
 
+## Debugging Guidelines
+
+⚠️ **CRITICAL**: When debugging recent regressions, always start with timeline analysis and git history.
+
+See `debugging-struggle-analysis.md` for detailed lessons learned from a 4-hour debugging session that could have been resolved in 25 minutes with proper methodology.
+
+### Debugging Checklist for Regressions
+1. **Listen to timeline context**: "worked before, broke recently" = git history investigation
+2. **Check recent commits**: `git log --oneline --since="X days ago"`
+3. **Identify breaking changes**: `git show <commit> -- <file>`
+4. **Understand before fixing**: Don't apply random fixes without understanding the system
+5. **One change at a time**: Test each fix individually
+
+### Common Anti-Patterns to Avoid
+- Symptom-focused debugging (hiding problems instead of finding root cause)
+- Ignoring user timeline information
+- Making assumptions about "standard behavior"
+- Applying multiple fixes without understanding
+- Creating complex solutions for simple regressions
+
 ## Getting Started
 
 1. Ensure you have Flutter installed and set up on your development machine
