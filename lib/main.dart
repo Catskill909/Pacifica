@@ -213,15 +213,20 @@ class AudioPlayerHandler extends BaseAudioHandler {
       ProcessingState.completed: AudioProcessingState.completed,
     }[_player.processingState]!;
     
-    // Android-specific: During stream switching, show play button to avoid confusion
-    // iOS: Keep standard behavior to maintain released functionality
-    final controls = (defaultTargetPlatform == TargetPlatform.android && _isStreamSwitching)
-      ? [MediaControl.play]
-      : [if (playing) MediaControl.pause else MediaControl.play];
+    // Controls policy:
+    // - When idle: publish no controls so Android removes the media surface.
+    // - During stream switching (Android): show only Play to avoid flicker.
+    // - Otherwise: standard Play/Pause toggle.
+    final List<MediaControl> controls =
+        processingState == AudioProcessingState.idle
+            ? const []
+            : ((defaultTargetPlatform == TargetPlatform.android && _isStreamSwitching)
+                ? const [MediaControl.play]
+                : [if (playing) MediaControl.pause else MediaControl.play]);
     
     playbackState.add(playbackState.value.copyWith(
       controls: controls,
-      androidCompactActionIndices: [0],
+      androidCompactActionIndices: controls.isNotEmpty ? [0] : [],
       processingState: processingState,
       playing: playing,
       updatePosition: _player.position,
@@ -261,13 +266,8 @@ class AudioPlayerHandler extends BaseAudioHandler {
 
   @override
   Future<void> pause() async {
-    // On Android, pausing from the lock screen should behave like stopping.
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      await stop();
-    } else {
-      await _player.pause();
-      _broadcastState(_player.playbackEvent);
-    }
+    await _player.pause();
+    _broadcastState(_player.playbackEvent);
   }
 
   @override
@@ -276,18 +276,10 @@ class AudioPlayerHandler extends BaseAudioHandler {
     await super.stop();
   }
   
-  // This method is now redundant and can be removed, but we'll keep it for now
-  // to ensure no other part of the app breaks. The correct behavior is now in stop().
-  Future<void> resetToInitial() async {
-    await _player.stop();
-    playbackState.add(playbackState.value.copyWith(
-      controls: [MediaControl.play],
-      processingState: AudioProcessingState.idle,
-      playing: false,
-      updatePosition: Duration.zero,
-      bufferedPosition: Duration.zero,
-    ));
-  }
+  // REMOVED: This method was creating duplicate lock screen controls
+  // The manual playbackState.add() call was broadcasting a second MediaSession
+  // which appeared as a duplicate player on the lock screen after pause.
+  // Standard behavior is handled by stop() -> super.stop() lifecycle.
 
   // Prepare current stream without starting playback, so a single Play tap works
   Future<void> prepareCurrent() async {
