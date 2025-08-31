@@ -8,7 +8,7 @@
 PRODUCT_NAME = pacifica2
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.pacifica.app.pacifica2
+PRODUCT_BUNDLE_IDENTIFIER = org.kpft.radio
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2023 com.pacifica.app. All rights reserved.

@@ -112,3 +112,51 @@ See `debugging-struggle-analysis.md` for detailed lessons learned from a 4-hour 
 2. Clone this repository
 3. Run `flutter pub get` to install dependencies
 4. Run `flutter run` to start the app in debug mode
+
+## Android Play Upload SOP (Signing + Upload)
+
+Use this checklist to avoid Play Console signing issues and ensure clean first uploads.
+
+- **Keystore**
+  - Upload keystore: `android/keystore/kpft-pacifica-upload.jks`
+  - Alias: `kpftpacifica2025`
+  - Details and credentials: see `android/keystore/KPFT_PACIFICA_UPLOAD_KEY_2025.md`
+
+- **Project configuration**
+  - Confirm package ID everywhere: `org.pacifica.kpft.app`
+    - `android/app/build.gradle` → `namespace` and `applicationId`
+    - `android/app/src/main/AndroidManifest.xml` → `package`
+    - Kotlin path matches package: `android/app/src/main/kotlin/org/pacifica/kpft/app/MainActivity.kt`
+
+- **Build AAB**
+  - `flutter clean && flutter pub get && flutter build appbundle --release`
+
+- **Verify certificates BEFORE uploading**
+  - Keystore (press Enter if prompted for key password):
+    ```bash
+    keytool -list -v -alias kpftpacifica2025 -keystore android/keystore/kpft-pacifica-upload.jks
+    ```
+  - AAB signer:
+    ```bash
+    keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab
+    ```
+  - The AAB SHA1/SHA256 must match the keystore exactly.
+
+- **Known-good upload certificate fingerprints (as of 2025-08-31)**
+  - SHA1: `DE:AE:80:4D:E6:9A:85:DA:6A:E8:9F:7B:F1:3C:0F:52:54:DB:94:99`
+  - SHA256: `2D:94:7C:97:D2:60:AC:02:65:77:B9:AC:F0:41:80:16:8B:C5:25:09:A3:24:50:59:94:81:5D:27:BD:D6:3B:C1`
+
+- **Upload hygiene (critical)**
+  - Use a clean Chrome profile/Incognito.
+  - Log in to the correct developer account (Pacifica).
+  - Play Console → Testing → Internal testing → Create release → Upload the AAB.
+  - Add testers, roll out to internal testing, share opt-in URL.
+
+- **If Play shows “wrong key” on the first upload**
+  - Collect evidence and open a support ticket:
+    - Screenshot: keystore `keytool -list -v` output (SHA1/SHA256)
+    - Screenshot: AAB `keytool -printcert -jarfile ...` output
+    - Screenshot: Play error message
+  - Note: Final app signing is by Google Play; your AAB must be signed by the upload key only.
+
+Tip: Avoid external cross-project references (e.g., third-party asset URLs) to reduce perceived linkage between projects.
