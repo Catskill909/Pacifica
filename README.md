@@ -128,8 +128,17 @@ Use this checklist to avoid Play Console signing issues and ensure clean first u
     - `android/app/src/main/AndroidManifest.xml` → `package`
     - Kotlin path matches package: `android/app/src/main/kotlin/org/pacifica/kpft/app/MainActivity.kt`
 
-- **Build AAB**
-  - `flutter clean && flutter pub get && flutter build appbundle --release`
+- **Build AAB & Generate Debug Symbols**
+  - Run the build command with the `--split-debug-info` flag. This creates the App Bundle (`.aab`), native debug symbols (`.zip`), and the deobfuscation map (`.txt`).
+    ```bash
+    flutter clean && flutter pub get && flutter build appbundle --split-debug-info=build/app/outputs/symbols
+    ```
+
+- **Upload to Play Console**
+  1.  **Upload App Bundle**: In the Play Console, upload the App Bundle located at `build/app/outputs/bundle/release/app-release.aab`.
+  2.  **Upload Debug Files**: After uploading the bundle, go to the **App bundle explorer**, select the version, and go to the **Downloads** tab.
+      - Upload the deobfuscation file: `build/app/outputs/mapping/release/mapping.txt`.
+      - Upload the native debug symbols: `build/app/outputs/symbols/app-release.zip`.
 
 - **Verify certificates BEFORE uploading**
   - Keystore (press Enter if prompted for key password):
