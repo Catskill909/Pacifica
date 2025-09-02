@@ -46,12 +46,15 @@ cp keystore/keystore.properties.sample keystore.properties
 # Edit keystore.properties with actual passwords
 ```
 
-### 3. Build Production APK/AAB
+### 3. Build Production AAB with Debug Symbols
 ```bash
-# For AAB (recommended for Google Play)
-flutter build appbundle --release
+# Clean and build AAB with debug symbols (REQUIRED for Play Console)
+flutter clean && flutter pub get && flutter build appbundle --split-debug-info=build/app/outputs/symbols
 
-# For APK (if needed)
+# Create zip file for native debug symbols
+cd build/app/outputs/symbols && zip -r app-release.zip *.symbols && cd ../../../..
+
+# For APK (if needed for testing)
 flutter build apk --release
 ```
 
@@ -66,6 +69,10 @@ flutter build apk --release
  - Before uploading, follow the "Android Play Upload SOP (Signing + Upload)" in `README.md` (certificate verification + clean browser profile)
 - Create Google Play Console account
 - Upload AAB file
+- **Upload Debug Files (CRITICAL for crash analysis):**
+  - Go to **App bundle explorer** → Select version → **Downloads** tab
+  - Upload deobfuscation file: `build/app/outputs/mapping/release/mapping.txt`
+  - Upload native debug symbols: `build/app/outputs/symbols/app-release.zip`
 - Configure store listing
 - Set up app signing by Google Play
 
