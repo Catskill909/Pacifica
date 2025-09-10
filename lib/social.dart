@@ -33,10 +33,10 @@ class SocialIcons extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Create a SocialIcon widget for Twitter
+          // Create a SocialIcon widget for Mastodon/BlueSky
           SocialIcon(
-            icon: FontAwesomeIcons.twitter,
-            url: 'https://twitter.com/KpftHouston',
+            icon: FontAwesomeIcons.mastodon,
+            url: 'https://bsky.app/profile/kpfthouston.bsky.social',
             iconSize: iconSize,
             circleRadius: radius,
             padding: 4,
@@ -56,7 +56,7 @@ class SocialIcons extends StatelessWidget {
           // Create a SocialIcon widget for Instagram
           SocialIcon(
             icon: FontAwesomeIcons.instagram,
-            url: 'https://www.instagram.com/kpfthouston/?hl=en',
+            url: 'https://www.instagram.com/kpfthoustontx',
             iconSize: iconSize,
             circleRadius: radius,
             padding: 4,
