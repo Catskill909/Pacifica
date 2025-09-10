@@ -187,11 +187,16 @@ class RadioSheet extends StatelessWidget {
             const SizedBox(
               height: 4,
             ),
-            const SafeArea(
+            SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.only(bottom: 4.0, top: 0.0),
-                child: SocialIcons(),
+                padding: EdgeInsets.only(
+                  bottom: 4.0,
+                  // Add extra space above the social icons on tablets,
+                  // modest space on larger phones, and keep small phones tight.
+                  top: isTablet ? 14.0 : (isSmallPhone ? 6.0 : 10.0),
+                ),
+                child: const SocialIcons(),
               ),
             ),
             const SizedBox(height: 2),
@@ -205,10 +210,9 @@ class RadioSheet extends StatelessWidget {
 
   Future<void> _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch $urlString';
+    final ok = await launchUrl(url, mode: LaunchMode.externalApplication);
+    if (!ok) {
+      logger.w('launchUrl returned false for $urlString');
     }
   }
 }
