@@ -18,6 +18,11 @@ class _WebViewContainerState extends State<WebViewContainer> {
   final GlobalKey<CustomWebViewState> _webKey = GlobalKey<CustomWebViewState>();
   // Stable fallbacks until the WebView state is available
   final ValueNotifier<bool> _falseVN = ValueNotifier<bool>(false);
+  
+  // Public method to force refresh the WebView
+  void forceRefresh() {
+    _webKey.currentState?.forceRefresh();
+  }
 
   @override
   void dispose() {

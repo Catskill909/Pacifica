@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:developer';
+import 'dart:async';
 
 class CustomWebView extends StatefulWidget {
   final String url;
@@ -17,6 +18,8 @@ class CustomWebViewState extends State<CustomWebView>
   late final WebViewController _controller;
   bool _isLoading = true;
   bool _errorOccurred = false;
+  String? _lastLoadedUrl; // Track last loaded URL for force refresh detection
+  Timer? _iosRefreshTimer; // iOS-specific timer to ensure JavaScript keeps running
 
   // Public listenables to allow overlays/scrims to rebuild on state changes
   final ValueNotifier<bool> _isLoadingNotifier = ValueNotifier<bool>(true);
@@ -28,6 +31,35 @@ class CustomWebViewState extends State<CustomWebView>
   ValueListenable<bool> get isLoadingListenable => _isLoadingNotifier;
   ValueListenable<bool> get errorListenable => _errorNotifier;
   void reload() => _controller.reload();
+  
+  // Force refresh with cache busting
+  void forceRefresh() {
+    final cacheBustedUrl = _addCacheBuster(widget.url);
+    log('Force refreshing with cache buster: $cacheBustedUrl');
+    _controller.loadRequest(Uri.parse(cacheBustedUrl));
+  }
+  
+  // Add cache-busting timestamp to URL
+  String _addCacheBuster(String url) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final separator = url.contains('?') ? '&' : '?';
+    return '$url${separator}_t=$timestamp';
+  }
+  
+  // iOS-specific: Start periodic refresh to combat JavaScript suspension
+  void _startIosPeriodicRefresh() {
+    _iosRefreshTimer?.cancel();
+    _iosRefreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      log('iOS periodic refresh - ensuring JavaScript stays active');
+      // Inject JavaScript to restart the setInterval if it was suspended
+      _controller.runJavaScript('''
+        if (typeof get_data === 'function') {
+          console.log('Restarting get_data interval from iOS refresh');
+          get_data(); // Call immediately
+        }
+      ''');
+    });
+  }
 
   @override
   void initState() {
@@ -37,6 +69,8 @@ class CustomWebViewState extends State<CustomWebView>
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..clearCache() // Clear cache on initialization
+      ..clearLocalStorage() // Clear local storage
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
@@ -60,16 +94,26 @@ class CustomWebViewState extends State<CustomWebView>
           },
         ),
       )
-      ..loadRequest(Uri.parse(widget.url));
-    log('initState completed');
+      ..loadRequest(Uri.parse(_addCacheBuster(widget.url)));
+    _lastLoadedUrl = widget.url;
+    
+    // iOS-specific: Start periodic refresh to keep JavaScript alive
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      _startIosPeriodicRefresh();
+    }
+    
+    log('initState completed with cache-busted URL');
   }
 
   @override
   void didUpdateWidget(CustomWebView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url) {
-      log('URL changed from ${oldWidget.url} to ${widget.url}');
-      _controller.loadRequest(Uri.parse(widget.url));
+    // CRITICAL FIX: Always refresh, even for same URL (for live content)
+    if (oldWidget.url != widget.url || _lastLoadedUrl != widget.url) {
+      log('URL changed from ${oldWidget.url} to ${widget.url} OR force refresh needed');
+      final cacheBustedUrl = _addCacheBuster(widget.url);
+      _controller.loadRequest(Uri.parse(cacheBustedUrl));
+      _lastLoadedUrl = widget.url;
     }
   }
 
@@ -77,6 +121,7 @@ class CustomWebViewState extends State<CustomWebView>
   void dispose() {
     log('WebView disposed');
     WidgetsBinding.instance.removeObserver(this);
+    _iosRefreshTimer?.cancel(); // Clean up iOS timer
     _isLoadingNotifier.dispose();
     _errorNotifier.dispose();
     super.dispose();
@@ -87,9 +132,17 @@ class CustomWebViewState extends State<CustomWebView>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     log('didChangeAppLifecycleState: $state');
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed && _errorOccurred) {
-      _controller.reload();
-      _errorOccurred = false;
+    if (state == AppLifecycleState.resumed) {
+      if (_errorOccurred) {
+        _controller.reload();
+        _errorOccurred = false;
+      } else {
+        // iOS-specific: Force refresh on resume to restart JavaScript timers
+        if (defaultTargetPlatform == TargetPlatform.iOS) {
+          log('iOS app resumed - force refreshing WebView to restart JavaScript');
+          forceRefresh();
+        }
+      }
     }
   }
 

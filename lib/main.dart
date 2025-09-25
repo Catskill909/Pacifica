@@ -415,6 +415,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
   String _currentWebViewUrl = 'https://docs.pacifica.org/kpft/hd1/';
+  final GlobalKey _webViewKey = GlobalKey();
 
   static const Map<String, String> webViewUrls = {
     'HD1': 'https://docs.pacifica.org/kpft/hd1/',
@@ -474,7 +475,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Flexible(
                 flex: 8,
-                child: WebViewContainer(url: _currentWebViewUrl),
+                child: WebViewContainer(key: _webViewKey, url: _currentWebViewUrl),
               ),
               Flexible(
                 flex: 2,
@@ -487,10 +488,29 @@ class _MyHomePageState extends State<MyHomePage> {
         bottomNavigationBar: StreamBottomNavigation(
           currentIndex: _currentIndex,
           onTabChanged: (streamId) {
+            final oldUrl = _currentWebViewUrl;
             setState(() {
               _currentIndex = ['HD1', 'HD2', 'HD3'].indexOf(streamId);
               _currentWebViewUrl = webViewUrls[streamId] ?? _currentWebViewUrl;
             });
+            
+            // CRITICAL FIX: Force refresh even if returning to same URL
+            // This ensures live content updates properly
+            if (oldUrl == _currentWebViewUrl) {
+              // Same URL - force refresh to get live content
+              Future.delayed(const Duration(milliseconds: 100), () {
+                final webViewState = _webViewKey.currentState;
+                if (webViewState != null) {
+                  // Access the forceRefresh method through dynamic call
+                  try {
+                    (webViewState as dynamic).forceRefresh();
+                  } catch (e) {
+                    log('Force refresh failed: $e');
+                  }
+                }
+              });
+            }
+            
             // Update audio stream
             widget.handler.setMediaItem(MediaItem(
               id: streamId,
